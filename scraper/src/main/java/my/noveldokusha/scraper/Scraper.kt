@@ -43,7 +43,7 @@ class Scraper @Inject constructor(
     )
 
     val sourcesList = setOf(
-        localSource,
+        // localSource,
         LightNovelsTranslations(networkClient),
         ReadLightNovel(networkClient),
         ReadNovelFull(networkClient),
