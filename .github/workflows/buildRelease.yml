@@ -6,20 +6,21 @@ on:
 jobs:
   buildRelease:
     name: Build Release APK
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest  # Changed from ubuntu-20.04
     steps:
       - name: Clone repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4  # Updated to v4
 
-      - name: Set up JDK enviroment
-        uses: actions/setup-java@v1.4.3
+      - name: Set up JDK environment
+        uses: actions/setup-java@v4  # Updated to v4
         with:
           java-version: 17
+          distribution: 'temurin'  # Added distribution
 
-      - name: Setup Python enviroment
-        uses: actions/setup-python@v2
+      - name: Setup Python environment
+        uses: actions/setup-python@v5  # Updated to v5
         with:
-          python-version: 3.11
+          python-version: '3.11'
 
       - name: Setup Gradle version to 8.2
         uses: gradle/gradle-build-action@v2
