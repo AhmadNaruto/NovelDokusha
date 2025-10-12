@@ -66,9 +66,9 @@ moshi = "1.15.0"
 room = "2.6.1"
 junit = "4.13.2"
 
-okhttp = "5.2.1"
-okhttp-interceptor-logging = "5.2.1"
-okhttp-glideIntegration = "5.0.5"
+okhttp = "4.12.0"
+okhttp-interceptor-logging = "4.12.0"
+okhttp-glideIntegration = "4.16.0"
 
 readability4j = "1.0.8"
 retrofit = "2.9.0"
