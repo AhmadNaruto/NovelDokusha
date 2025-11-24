@@ -1,29 +1,31 @@
 name: Publish Release
 
 on:
-  workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 jobs:
   buildRelease:
     name: Build Release APK
     runs-on: ubuntu-latest
+    permissions:
+      contents: write   # agar bisa membuat release
     steps:
       - name: Clone repo
         uses: actions/checkout@v4
 
-      - name: Set up JDK environment
-        uses: actions/setup-java@v5.0.0
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
         with:
           java-version: 21
-          distribution: 'temurin'
-          cache: 'gradle'
+          distribution: temurin
+          cache: gradle
 
-      - name: Setup Python environment
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: 3.11
 
-      - name: Setup APK signing
+      - name: Decode signing key
         run: |
           echo -n ${{ secrets.SIGNING_KEY }} | base64 -d > app/storeFile.jsk
           echo storeFile=storeFile.jsk > custom.properties
@@ -31,29 +33,29 @@ jobs:
           echo keyAlias=${{ secrets.ALIAS }} >> custom.properties
           echo keyPassword=${{ secrets.KEY_PASSWORD }} >> custom.properties
       
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
-        with:
-          gradle-version: 8.13
-        - name: Build app
-          run: gradle assembleRelease -PlocalPropertiesFilePath=custom.properties --no-daemon
+          
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
 
-      - name: Tampilkan Jalur & Nama File APK
+      - name: Build release APK
+        run: ./gradlew assembleRelease -PlocalPropertiesFilePath=custom.properties --no-daemon
+
+      - name: Find APK path
+        id: apk
         run: |
-          APK_PATH=$(find app/build/outputs/apk -name "*.apk" | grep -v "debug" | head -n 1)
-          echo "✅ APK Release Ditemukan pada:"
-          echo "$APK_PATH"
-          APK_FILENAME=$(basename "$APK_PATH")
-          echo "Nama File APK: $APK_FILENAME"
-                                          
-      - name: Create apk env info entries, move APK
+          set -euo pipefail
+          APK_PATH=$(find app/build/outputs/apk -name "*release*.apk" | head -n 1)
+          echo "APK_PATH=$APK_PATH" >> "$GITHUB_ENV"
+          echo "APK_FILENAME=$(basename "$APK_PATH")" >> "$GITHUB_ENV"
+
+      - name: Extract version & move APK
         run: |
+          export APK_FILE_PATH_release="${{ env.APK_PATH }}"
           python .github/build_scripts/extract_info.py
 
-      - name: Create Release
+      - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           name: NovelDokusha v${{ env.APP_VERSION }}
           tag_name: v${{ env.APP_VERSION }}
-          files: |
-            ${{ env.APK_FILE_PATH_release }}
+          files: ${{ env.APK_FILE_PATH_release }}
