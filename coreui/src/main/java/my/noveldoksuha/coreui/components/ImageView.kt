@@ -28,20 +28,19 @@ fun ImageView(
     @DrawableRes error: Int = R.drawable.default_book_cover,
     colorFilter: ColorFilter? = null,
 ) {
-    val model by remember(imageModel, error) {
-        derivedStateOf {
-            when (imageModel) {
-                is String -> imageModel.ifBlank { error }
-                null -> run { error }
-                else -> imageModel
-            }
+    val context = LocalContext.current
+
+    // Normalisasi model agar stabil
+    val model = remember(imageModel, error) {
+        when (imageModel) {
+            is String -> imageModel.ifBlank { error }
+            null -> error
+            else -> imageModel
         }
     }
+
     if (LocalInspectionMode.current) {
-        val res = when (val modelCopy = model) {
-            is Int -> modelCopy
-            else -> error
-        }
+        val res = if (model is Int) model else error
         Image(
             painter = painterResource(res),
             contentDescription = contentDescription,
@@ -50,25 +49,25 @@ fun ImageView(
             colorFilter = colorFilter,
         )
     } else {
-        val context by rememberUpdatedState(LocalContext.current)
-        val imageRequest by remember(model) {
-            derivedStateOf {
-                ImageRequest
-                    .Builder(context)
-                    .data(model)
-                    .crossfade(fadeInDurationMillis)
-                    .build()
-            }
+        // Gunakan remember dengan key yang stabil
+        val imageRequest = remember(model) {
+            ImageRequest.Builder(context)
+                .data(model)
+                .crossfade(fadeInDurationMillis)
+                .memoryCacheKey(model.toString()) // Penting: stabilkan cache key
+                .diskCacheKey(model.toString()) // Optional: untuk disk cache
+                .build()
         }
-        val imageErrorRequest by remember(error) {
-            derivedStateOf {
-                ImageRequest
-                    .Builder(context)
-                    .data(error)
-                    .crossfade(fadeInDurationMillis)
-                    .build()
-            }
+
+        val errorRequest = remember(error) {
+            ImageRequest.Builder(context)
+                .data(error)
+                .crossfade(fadeInDurationMillis)
+                .memoryCacheKey(error.toString())
+                .diskCacheKey(error.toString())
+                .build()
         }
+
         AsyncImage(
             model = imageRequest,
             contentDescription = contentDescription,
@@ -76,7 +75,7 @@ fun ImageView(
             modifier = modifier,
             colorFilter = colorFilter,
             error = rememberAsyncImagePainter(
-                model = imageErrorRequest,
+                model = errorRequest,
                 contentScale = contentScale
             )
         )
