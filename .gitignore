@@ -17,3 +17,5 @@
 *.keystore
 keychain
 key.properties
+*.md
+/lightnovel-crawler-dev
