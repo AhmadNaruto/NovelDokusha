@@ -1,5 +1,7 @@
 package my.noveldokusha.network
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import my.noveldokusha.core.Response
 import my.noveldokusha.core.flatMapError
 import my.noveldokusha.core.flatten
@@ -16,38 +18,39 @@ suspend fun <T> tryConnect(
     call: suspend () -> T
 ): Response<T> = tryAsResponse { call() }.specifyNetworkErrors(extraErrorInfo)
 
-
-private suspend fun <T> Response<T>.specifyNetworkErrors(extraErrorInfo: String = "") =
-    flatMapError {
-        when (it.exception) {
-            is SocketTimeoutException -> {
-                val error = listOf(
-                    "Timeout error.",
-                    "",
-                    "Info:",
-                    extraErrorInfo.ifBlank { "No info" },
-                    "",
-                    "Message:",
-                    it.exception.message
-                ).joinToString("\n")
-
-                Response.Error(error, it.exception)
-            }
-            else -> {
-                val error = listOf(
-                    "Unknown error.",
-                    "",
-                    "Info:",
-                    extraErrorInfo.ifBlank { "No Info" },
-                    "",
-                    "Message:",
-                    it.exception.message,
-                    "",
-                    "Stacktrace:",
-                    it.exception.stackTraceToString()
-                ).joinToString("\n")
-
-                Response.Error(error, it.exception)
+// FIXED: Bungkus flatMapError di withContext untuk menjadikannya suspend-safe
+private suspend fun <T> Response<T>.specifyNetworkErrors(extraErrorInfo: String = ""): Response<T> =
+    withContext(Dispatchers.Default) {
+        flatMapError { err ->
+            val msg = err.exception.message ?: "No detail message"
+            when (err.exception) {
+                is SocketTimeoutException -> {
+                    val error = listOf(
+                        "Timeout error.",
+                        "",
+                        "Info:",
+                        extraErrorInfo.ifBlank { "No info" },
+                        "",
+                        "Message:",
+                        msg
+                    ).joinToString("\n")
+                    Response.Error(error, err.exception)
+                }
+                else -> {
+                    val error = listOf(
+                        "Unknown error.",
+                        "",
+                        "Info:",
+                        extraErrorInfo.ifBlank { "No Info" },
+                        "",
+                        "Message:",
+                        msg,
+                        "",
+                        "Stacktrace:",
+                        err.exception.stackTraceToString()
+                    ).joinToString("\n")
+                    Response.Error(error, err.exception)
+                }
             }
         }
     }

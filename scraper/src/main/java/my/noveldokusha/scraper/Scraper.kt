@@ -33,13 +33,13 @@ import my.noveldokusha.scraper.sources.NoBadNovel
 import my.noveldokusha.scraper.sources.FanMTL
 import my.noveldokusha.scraper.sources.LNMTL
 import my.noveldokusha.scraper.sources.WtrLab
-import my.noveldokusha.scraper.sources.Jaomix
 import my.noveldokusha.scraper.sources.Shuba69
 import my.noveldokusha.scraper.sources.UuKanshu
 import my.noveldokusha.scraper.sources.Ddxss
 import my.noveldokusha.scraper.sources.LeYueDu
 import my.noveldokusha.scraper.sources.Twkan
 import my.noveldokusha.scraper.sources.Ttkan
+import my.noveldokusha.scraper.sources.NovelUpdates
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -57,7 +57,7 @@ class Scraper @Inject constructor(
         localSource,
         ReadNovelFull(networkClient),
         RoyalRoad(networkClient),
-        my.noveldokusha.scraper.sources.NovelUpdates(networkClient),
+        NovelUpdates(networkClient),
         Reddit(),
         AT(),
         Sousetsuka(),
@@ -90,8 +90,7 @@ class Scraper @Inject constructor(
         NoBadNovel(networkClient),
         FanMTL(networkClient),
         LNMTL(networkClient),
-        WtrLab(networkClient),
-        Jaomix(networkClient),
+        WtrLab(networkClient)
     )
 
     val sourcesCatalogsList = sourcesList.filterIsInstance<SourceInterface.Catalog>()

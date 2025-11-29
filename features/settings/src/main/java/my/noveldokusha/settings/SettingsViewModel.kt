@@ -7,7 +7,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.bumptech.glide.Glide
+import coil3.imageLoader                                        // FIXED: Coil 3
+import coil3.request.CachePolicy                                // FIXED: Coil 3
+import coil3.request.ImageRequest                               // FIXED: Coil 3
+import coil3.request.SuccessResult                              // FIXED: Coil 3
+import coil3.toBitmap                                           // FIXED: Coil 3
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -107,8 +111,9 @@ internal class SettingsViewModel @Inject constructor(
             ?.filter { it.isDirectory && it.exists() }
             ?.filter { it.name !in libraryFolders }
             ?.forEach { it.deleteRecursively() }
+
         updateImagesFolderSize()
-        Glide.get(context).clearDiskCache()
+        clearCoilDiskCache() // FIXED: ganti Glide dengan Coil 3
     }
 
     fun onFollowSystemChange(follow: Boolean) {
@@ -158,14 +163,23 @@ internal class SettingsViewModel @Inject constructor(
             state.updateAppSetting.checkingForNewVersion.value = false
         }
     }
-}
 
-private suspend fun getFolderSizeBytes(file: File): Long = withContext(Dispatchers.IO) {
-    when {
-        !file.exists() -> 0
-        file.isFile -> file.length()
-        else -> file.walkBottomUp().sumOf { if (it.isDirectory) 0 else it.length() }
+    /* ---------- Private ---------- */
+    private suspend fun getFolderSizeBytes(file: File): Long = withContext(Dispatchers.IO) {
+        when {
+            !file.exists() -> 0
+            file.isFile -> file.length()
+            else -> file.walkBottomUp().sumOf { if (it.isDirectory) 0 else it.length() }
+    }
+
+    /**
+     * FIXED: Coil 3 clear disk cache (tidak pakai Glide lagi)
+     */
+    private fun clearCoilDiskCache() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                context.imageLoader.diskCache?.clear() // Coil 3 API
+            }
+        }
     }
 }
-
-

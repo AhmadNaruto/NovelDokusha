@@ -13,16 +13,19 @@ dependencies {
 
     // Networking
     implementation(libs.okhttp)
+    // implementation(libs.okhttp.coroutines)
     implementation(libs.okhttp.interceptor.brotli)
     implementation(libs.okhttp.interceptor.logging)
-    implementation(libs.okhttp.glideIntegration)
+    // implementation(libs.okhttp.glideIntegration)
 
     // Logging
     implementation(libs.timber)
 
     implementation(libs.jsoup)
     implementation(libs.gson)
-
+    
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
 }

@@ -45,13 +45,13 @@ androidx-testing-orchestrator = "1.5.0"
 androidx-testing-junit = "1.2.1"
 androidx-testing-espresso = "3.6.1"
 
-compose-coil = "2.4.0"
+compose-coil = "3.3.0"
 compose-accompanist = "0.30.1"
 compose-constraintlayout = "1.0.1"
 compose-animation = "1.6.8"
 compose-activity = "1.9.1"
 compose-lazyColumnScrollbar = "2.2.0"
-compose-landscapist-glide = "2.2.5"
+# compose-landscapist-glide = "2.2.5"
 compose-testing-ui = "1.6.8"
 compose-material-icons-extended = "1.6.8"
 compose-material3 = "1.2.1"
@@ -60,18 +60,17 @@ compose-material3Android = "1.2.1"
 
 crux = "5.0"
 gson = "2.10.1"
-jsoup = "1.17.2"
+jsoup = "1.21.2"
 translate = "17.0.2"
 moshi = "1.15.0"
 room = "2.6.1"
 junit = "4.13.2"
 
-okhttp = "5.0.0-alpha.11"
-okhttp-interceptor-logging = "5.0.0-alpha.11"
-okhttp-glideIntegration = "4.15.1"
+okhttp = "5.0.0-alpha.13"
+# okhttp-glideIntegration = "4.15.1"
 
 readability4j = "1.0.8"
-retrofit = "2.9.0"
+# retrofit = "2.9.0"
 
 timber = "5.0.1"
 junitVersion = "1.2.1"
@@ -96,8 +95,9 @@ compose-androidx-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4
 compose-androidx-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose-testing-ui" }
 compose-androidx-material3 = { module = "androidx.compose.material3:material3", version.ref = "compose-material3" }
 compose-lazyColumnScrollbar = { module = "com.github.nanihadesuka:LazyColumnScrollbar", version.ref = "compose-lazyColumnScrollbar" }
-compose-coil = { module = "io.coil-kt:coil-compose", version.ref = "compose-coil" }
-compose-landscapist-glide = { module = "com.github.skydoves:landscapist-glide", version.ref = "compose-landscapist-glide" }
+compose-coil = { module = "io.coil-kt.coil3:coil-compose",      version.ref = "compose-coil" }
+compose-coil-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "compose-coil" }
+# compose-landscapist-glide = { module = "com.github.skydoves:landscapist-glide", version.ref = "compose-landscapist-glide" }
 compose-material3-android = { group = "androidx.compose.material3", name = "material3-android", version.ref = "compose-material3Android" }
 
 # Hilt
@@ -113,11 +113,12 @@ androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 
 #Networking
-retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
-okhttp-interceptor-logging = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "okhttp-interceptor-logging" }
+# retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+okhttp-interceptor-logging = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "okhttp" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+# okhttp-coroutines = { module = "com.squareup.okhttp3:okhttp-coroutines", version.ref = "okhttp" }
 okhttp-interceptor-brotli = { module = "com.squareup.okhttp3:okhttp-brotli", version.ref = "okhttp" }
-okhttp-glideIntegration = { module = "com.github.bumptech.glide:okhttp3-integration", version.ref = "okhttp-glideIntegration" }
+# okhttp-glideIntegration = { module = "com.github.bumptech.glide:okhttp3-integration", version.ref = "okhttp-glideIntegration" }
 
 # Data manipulation (html, serialization, ...)
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
@@ -145,7 +146,7 @@ kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "
 kotlin-script-runtime = { module = "org.jetbrains.kotlin:kotlin-script-runtime", version.ref = "kotlin" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines-core" }
 kotlinx-coroutines-playServices = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "kotlinx-coroutines-playServices" }
-
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines-core" }
 # Android
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "androidx-constraintLayout" }
 androidx-fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "androidx-fragment-ktx" }

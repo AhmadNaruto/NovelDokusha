@@ -8,37 +8,32 @@ import okio.GzipSource
 import okio.buffer
 import okio.source
 import org.brotli.dec.BrotliInputStream
+import java.util.zip.InflaterInputStream
 
 /**
- * Interceptor to decode/uncompress a response body
- * with header content-encoding value:
- * 1) br
- * 2) gzip
+ * Dekode response ber-encoding br, gzip, ataupun deflate.
+ * Content-Length dihapus karena ukuran setelah dekompresi tidak diketahui.
  */
 internal class DecodeResponseInterceptor : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val response = chain.proceed(chain.request())
-
-        if (!response.promisesBody()) {
-            return response
-        }
+        if (!response.promisesBody()) return response
 
         val body = response.body
-        val contentEncoding = response.header("Content-Encoding")?.lowercase()
-            ?: return response
+        val encoding = response.header("Content-Encoding")?.lowercase() ?: return response
 
-        val decompressedSource = when (contentEncoding) {
-            "br" -> BrotliInputStream(body.source().inputStream()).source().buffer()
-            "gzip" -> GzipSource(body.source()).buffer()
-            else -> return response
+        val decompressed = when (encoding) {
+            "br"    -> BrotliInputStream(body.source().inputStream()).source().buffer()
+            "gzip"  -> GzipSource(body.source()).buffer()
+            "deflate" -> InflaterInputStream(body.source().inputStream()).source().buffer()
+            else    -> return response
         }
 
-        // We set the content length to -1 as we can't knew the uncompressed size without reading it
         return response.newBuilder()
-            .removeHeader("Content-Encoding")
-            .removeHeader("Content-Length")
-            .body(decompressedSource.asResponseBody(body.contentType(), -1))
+            .removeHeader("Content-Encoding") // hilangkan agar client tidak proses ulang
+            .removeHeader("Content-Length")   // ukuran sudah berubah
+            .body(decompressed.asResponseBody(body.contentType(), -1))
             .build()
     }
 }

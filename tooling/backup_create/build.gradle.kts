@@ -18,6 +18,7 @@ dependencies {
     implementation(libs.compose.androidx.activity)
     implementation(libs.compose.material3.android)
     implementation(libs.compose.androidx.material.icons.extended)
-    implementation(libs.compose.landscapist.glide)
+    // implementation(libs.compose.landscapist.glide)
     implementation(libs.compose.coil)
+    implementation(libs.compose.coil.okhttp)
 }

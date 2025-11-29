@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     `kotlin-dsl`
@@ -7,12 +8,13 @@ plugins {
 group = "my.noveldokusha.convention.plugin"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
+
 tasks.withType<KotlinCompile>().configureEach {
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_21)
     }
 }
 
@@ -35,17 +37,17 @@ gradlePlugin {
         register("androidApplication") {
             id = "noveldokusha.android.application"
             implementationClass =
-                "NoveldokushaAndroidApplicationBestPracticesConventionPlugin" // :)
+                "NoveldokushaAndroidApplicationBestPracticesConventionPlugin"
         }
         register("androidLibrary") {
             id = "noveldokusha.android.library"
             implementationClass =
-                "NoveldokushaAndroidLibraryBestPracticesConventionPlugin" // ;)
+                "NoveldokushaAndroidLibraryBestPracticesConventionPlugin"
         }
         register("androidCompose") {
             id = "noveldokusha.android.compose"
             implementationClass =
-                "NoveldokushaAndroidComposeBestPracticesConventionPlugin" // :)
+                "NoveldokushaAndroidComposeBestPracticesConventionPlugin"
         }
     }
 }

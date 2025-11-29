@@ -3,47 +3,47 @@ package my.noveldokusha.network
 import com.google.gson.JsonElement
 import com.google.gson.JsonParser
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import okhttp3.Call
 import okhttp3.Callback
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import okhttp3.Response
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.IOException
-import java.nio.charset.Charset
-import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
-private suspend fun Call.await(): Response = withContext(Dispatchers.IO) {
-    suspendCoroutine { continuation ->
-        enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                continuation.resumeWithException(e)
-            }
+/**
+ * Ekstensi suspend untuk menunggu Response tanpa okhttp-coroutine.
+ * FIXED: Gunakan suspendCancellableCoroutine dengan proper cancellation handling.
+ */
+suspend fun Call.await(): Response = suspendCancellableCoroutine { cont ->
+    enqueue(object : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            cont.resumeWithException(e)
+        }
 
-            override fun onResponse(call: Call, response: Response) {
-                continuation.resume(response)
-            }
-        })
+        override fun onResponse(call: Call, response: Response) {
+            // FIXED: Resume hanya dengan response, tidak ada lambda onCancellation
+            cont.resume(response)
+        }
+    })
+    
+    // FIXED: Handle cancellation properly
+    cont.invokeOnCancellation {
+        cancel() // Batalkan OkHttp call jika coroutine di-cancel
     }
 }
 
-suspend fun OkHttpClient.call(builder: Request.Builder) = newCall(builder.build()).await()
-
-fun Response.toDocument(): Document {
-    return Jsoup.parse(body.string())
+fun Response.toDocument(): Document = body.use { body ->
+    Jsoup.parse(body.string(), request.url.toString())
 }
 
-fun Response.toDocument(charset: String): Document {
-    val bytes = body.bytes()
-    val html = String(bytes, Charset.forName(charset))
-    val baseUrl = request.url.toString()
-    return Jsoup.parse(html, baseUrl)
+fun Response.toDocument(charset: String): Document = body.use { body ->
+    val html = String(body.bytes(), java.nio.charset.Charset.forName(charset))
+    Jsoup.parse(html, request.url.toString())
 }
 
-fun Response.toJson(): JsonElement {
-    return JsonParser.parseString(body.string())
+fun Response.toJson(): JsonElement = body.use { body ->
+    JsonParser.parseString(body.string())
 }

@@ -12,8 +12,12 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.doOnNextLayout
 import androidx.core.view.updateLayoutParams
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import coil3.request.ImageRequest                           // FIXED: Coil 3
+import coil3.request.SuccessResult                          // FIXED: Coil 3
+import coil3.toBitmap                                       // FIXED: Coil 3
+import kotlinx.coroutines.Dispatchers                       // FIXED: standar import
+import kotlinx.coroutines.GlobalScope                       // FIXED: untuk launch sementara (boleh diganti scope lain)
+import kotlinx.coroutines.launch                            // FIXED: standar import
 import my.noveldokusha.core.AppFileResolver
 import my.noveldokusha.core.utils.inflater
 import my.noveldokusha.features.reader.features.TextSynthesis
@@ -45,7 +49,10 @@ internal class ReaderItemAdapter(
     private val onReloadReader: () -> Unit,
     private val onClick: () -> Unit,
 ) : ArrayAdapter<ReaderItem>(ctx, 0, list) {
+
     private val appFileResolver = AppFileResolver(ctx)
+
+    /* -------------- Adapter Helper -------------- */
     override fun getCount() = super.getCount() + 2
     override fun getItem(position: Int): ReaderItem = when (position) {
         0 -> topPadding
@@ -53,7 +60,6 @@ internal class ReaderItemAdapter(
         else -> super.getItem(position - 1)!!
     }
 
-    // Ignores paddings as items that are visible
     fun getFirstVisibleItemIndexGivenPosition(firstVisiblePosition: Int): Int =
         when (firstVisiblePosition) {
             in 1 until (count - 1) -> firstVisiblePosition - 1
@@ -62,7 +68,6 @@ internal class ReaderItemAdapter(
             else -> -1
         }
 
-    // Get list index from current position
     fun fromPositionToIndex(position: Int): Int = when (position) {
         in 1 until (count - 1) -> position - 1
         else -> -1
@@ -92,6 +97,7 @@ internal class ReaderItemAdapter(
         is ReaderItem.TranslateAttribution -> 11
     }
 
+    /* -------------- View Creator -------------- */
     private fun viewTranslateAttribution(
         convertView: View?,
         parent: ViewGroup
@@ -120,13 +126,11 @@ internal class ReaderItemAdapter(
             ).also { it.root.tag = it }
             else -> ActivityReaderListItemTranslateAttributionBinding.bind(convertView)
         }
-        
-        // Set text based on provider
+
         bind.attributionText.text = when (item.provider) {
             "gemini" -> "Powered by Gemini"
             else -> "Powered by Google Translate"
         }
-        
         return bind.root
     }
 
@@ -172,18 +176,23 @@ internal class ReaderItemAdapter(
             imagePath = item.image.path
         )
 
-        // Glide uses current imageView size to load the bitmap best optimized for it, but current
-        // size corresponds to the last image (different size) and the view layout only updates to
-        // the new values on next redraw. Execute Glide loading call in the next (parent) layout
-        // update to let it get the correct values.
-        // (Avoids getting "blurry" images)
+        /* FIXED: Coil 3 loading */
         bind.imageContainer.doOnNextLayout {
-            Glide.with(ctx)
-                .load(imageModel)
-                .fitCenter()
-                .error(R.drawable.ic_baseline_error_outline_24)
-                .transition(DrawableTransitionOptions.withCrossFade())
-                .into(bind.image)
+            // FIXED: Coil 3 request builder tanpa context
+            val request = ImageRequest.Builder(ctx)
+                .data(imageModel)
+                .target { drawable ->
+                    bind.image.setImageDrawable(drawable)
+                }
+                .build()
+
+            // FIXED: eksekusi request di IO thread
+            GlobalScope.launch(Dispatchers.IO) {
+                val result = ctx.imageLoader.execute(request)
+                if (result !is SuccessResult) {
+                    bind.image.setImageResource(R.drawable.ic_baseline_error_outline_24)
+                }
+            }
         }
 
         when (item.location) {
@@ -219,7 +228,6 @@ internal class ReaderItemAdapter(
         parent: ViewGroup
     ): View {
         val bind = when (convertView) {
-
             null -> ActivityReaderListItemSpecialTitleBinding.inflate(
                 parent.inflater,
                 parent,
@@ -309,6 +317,7 @@ internal class ReaderItemAdapter(
         return bind.root
     }
 
+    /* -------------- Util -------------- */
     private val currentReadingAloudDrawable by lazy {
         AppCompatResources.getDrawable(
             context,

@@ -5,6 +5,7 @@ import kotlinx.coroutines.withContext
 import my.noveldokusha.epub_tooling.EpubBook.*
 import my.noveldokusha.tooling.epub_parser.*
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Attribute  // FIXED: Import explicit untuk Attribute
 import java.io.File
 import java.io.InputStream
 import java.util.zip.ZipInputStream
@@ -35,7 +36,7 @@ suspend fun epubParser(
         ?.selectFirstTag("rootfile")
         ?.getAttributeValue("full-path")
         ?.decodedURL ?: throw Exception("Invalid container.xml file")
-    // Extract rootPath
+    
     val rootPath = opfFilePath.substringBefore('/', "") // Get the part before the first slash
     val opfFile = files[opfFilePath] ?: throw Exception(".opf file missing")
 
@@ -59,7 +60,6 @@ suspend fun epubParser(
         .find { it.getAttributeValue("name") == "cover" }
         ?.getAttributeValue("content")
 
-
     val hrefRootPath = File(opfFilePath).parentFile ?: File("")
     fun String.hrefAbsolutePath() = File(hrefRootPath, this).canonicalFile
         .toPath()
@@ -75,22 +75,19 @@ suspend fun epubParser(
         )
     }.associateBy { it.id }
 
-
-
+    // FIXED: Fungsi ini memiliki dua panggilan unsafe yang perlu diperbaiki
     fun parseCoverImageFromXhtml(coverFile: EpubFile): Image? {
         val doc = Jsoup.parse(coverFile.data.inputStream(), "UTF-8", "")
-        // Find the <img> tag within the XHTML file
         val imgTag = doc.selectFirst("img")
 
         if (imgTag != null) {
-            var imgSrc = imgTag.attribute("src").value.hrefAbsolutePath()
+            // FIXED: attribute("src") mengembalikan Attribute?, pakai safe call
+            var imgSrc = imgTag.attribute("src")?.value?.hrefAbsolutePath() ?: return null
             if (!imgSrc.startsWith("$rootPath/")) {
                 imgSrc = "$rootPath/$imgSrc"
             }
 
             val imgFile = files[imgSrc]
-
-
             if (imgFile != null) {
                 return Image(absPath = imgFile.absPath, image = imgFile.data)
             }
@@ -98,12 +95,12 @@ suspend fun epubParser(
         return null
     }
 
-    // 1. Primary Method: Try to get the cover image from the manifest
+    // Primary Method: Try to get the cover image from the manifest
     var coverImage = manifestItems[metadataCoverId]
         ?.let { files[it.absPath] }
         ?.let { Image(absPath = it.absPath, image = it.data) }
 
-    // 2. Fallback: Check the `<guide>` tag if the primary method didn't yield a cover
+    // Fallback: Check the `<guide>` tag if the primary method didn't yield a cover
     if (coverImage == null) {
         var coverHref = guide?.selectChildTag("reference")
             ?.find { it.getAttribute("type") == "cover" }
@@ -124,26 +121,26 @@ suspend fun epubParser(
     val ncxFilePath = manifestItems["ncx"]?.absPath
     val ncxFile = files[ncxFilePath] ?: throw Exception("ncx file missing")
 
-
     val doc = Jsoup.parse(ncxFile.data.inputStream(), "UTF-8", "")
     val navMap = doc.selectFirst("navMap") ?: throw Exception("Invalid NCX file: navMap not found")
 
+    // FIXED: Juga ada unsafe call di sini yang perlu safe call
     val tocEntries = navMap.select("navPoint").map { navPoint ->
-        val title =  navPoint.selectFirst("navLabel")?.selectFirst("text")?.text() ?: ""
-        var link = navPoint.selectFirst("content")?.attribute("src")?.value ?: "" // Add the prefix
-        if (!link.startsWith(rootPath))
+        val title = navPoint.selectFirst("navLabel")?.selectFirst("text")?.text() ?: ""
+        // FIXED: attribute("src") mengembalikan Attribute?, pakai safe call
+        var link = navPoint.selectFirst("content")?.attribute("src")?.value ?: ""
+        if (!link.startsWith(rootPath)) {
             link = "$rootPath/$link"
+        }
         ToCEntry(title, link)
     }
 
-    // Function to check if a spine item is a chapter
     fun isChapter(item: ManifestItem): Boolean {
         val extension = item.absPath.substringAfterLast('.')
         return listOf("xhtml", "xml", "html").contains(extension)
     }
 
     fun findTocEntryForChapter(tocEntries: List<ToCEntry>, chapterUrl: String): ToCEntry? {
-        // Remove any potential fragment identifier from chapterUrl
         val chapterUrlWithoutFragment = chapterUrl.substringBefore('#')
         return tocEntries.firstOrNull {
             it.chapterLink.substringBefore('#').equals(chapterUrlWithoutFragment, ignoreCase = true)
@@ -159,17 +156,16 @@ suspend fun epubParser(
         val itemId = itemRef.getAttribute("idref")
         val spineItem = manifestItems[itemId]
 
-        // Check if the spine item exists and is a chapter
         if (spineItem != null && isChapter(spineItem)) {
             var spineUrl = spineItem.absPath
-            if (!spineUrl.startsWith(rootPath))
+            if (!spineUrl.startsWith(rootPath)) {
                 spineUrl = "$rootPath/$spineUrl"
+            }
 
             val tocEntry = findTocEntryForChapter(tocEntries, spineUrl)
             val parser = EpubXMLFileParser(spineUrl, files[spineUrl]?.data ?: ByteArray(0), files)
             val res = parser.parseAsDocument()
 
-            // If currentTOC exists and we have a new tocEntry, add the accumulated chapter content
             if (currentTOC != null && tocEntry != null && currentChapterBody.isNotEmpty()) {
                 chapters.add(Chapter(currentTOC!!.chapterLink, currentTOC!!.chapterTitle, currentChapterBody))
                 currentChapterBody = ""
@@ -182,21 +178,17 @@ suspend fun epubParser(
                 if (spineItem.mediaType.startsWith("image/")) {
                     chapters.add(Chapter("image_${spineItem.absPath}", "", parser.parseAsImage(spineItem.absPath)))
                 } else {
-                    // Append the chapter content to the current chapter body
                     currentChapterBody += if (res.body.isBlank()) "" else "\n\n${res.body}"
                 }
             }
         }
     }
 
-    // Add the last chapter if any content remains
     if (currentTOC != null && currentChapterBody.isNotEmpty()) {
         chapters.add(Chapter(currentTOC!!.chapterLink, currentTOC!!.chapterTitle, currentChapterBody))
     }
 
-
-    val imageExtensions =
-        listOf("png", "gif", "raw", "png", "jpg", "jpeg", "webp", "svg").map { ".$it" }
+    val imageExtensions = listOf("png", "gif", "raw", "jpg", "jpeg", "webp", "svg").map { ".$it" }
     val unlistedImages = files
         .asSequence()
         .filter { (_, file) ->
@@ -213,7 +205,6 @@ suspend fun epubParser(
         .map { Image(absPath = it.absPath, image = it.data) }
 
     val images = (listedImages + unlistedImages).distinctBy { it.absPath }
-
 
     return@withContext EpubBook(
         fileName = metadataTitle.asFileName(),

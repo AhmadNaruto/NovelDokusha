@@ -41,8 +41,10 @@ android {
             isUniversalApk = cliCustomSettings.splitByAbiDoUniversal
         }
     }
-
+    compileSdk = 35 
     defaultConfig {
+        minSdk = 26
+        targetSdk = 34 
         applicationId = "my.noveldokusha"
         versionCode = 28
         versionName = "2.3.9"
@@ -171,7 +173,7 @@ dependencies {
     implementation(libs.moshi)
     implementation(libs.moshi.kotlin)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.retrofit)
+    // implementation(libs.retrofit)
 
     // Dependency injection
     implementation(libs.hilt.workmanager)
@@ -194,15 +196,16 @@ dependencies {
     implementation(libs.compose.accompanist.insets)
     implementation(libs.compose.accompanist.pager)
     implementation(libs.compose.accompanist.pager.indicators)
-    implementation(libs.compose.landscapist.glide)
+    // implementation(libs.compose.landscapist.glide)
     implementation(libs.compose.coil)
+    implementation(libs.compose.coil.okhttp)
     implementation(libs.compose.lazyColumnScrollbar)
 
     // Networking
     implementation(libs.okhttp)
     implementation(libs.okhttp.interceptor.brotli)
     implementation(libs.okhttp.interceptor.logging)
-    implementation(libs.okhttp.glideIntegration)
+    // implementation(libs.okhttp.glideIntegration)
 
     // Logging
     implementation(libs.timber)

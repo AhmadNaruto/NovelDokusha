@@ -6,22 +6,32 @@ import okhttp3.CookieJar
 import okhttp3.HttpUrl
 
 internal class ScraperCookieJar : CookieJar {
+
     private val manager = CookieManager.getInstance().also {
         it.setAcceptCookie(true)
     }
 
-    private fun getCookieList(url: String?): List<String> {
-        url ?: return emptyList()
-        return manager.getCookie(url)?.split(";") ?: emptyList()
-    }
-
+    /**
+     * Membaca seluruh cookie untuk *url* lalu parse menjadi List<Cookie>.
+     * Flush sekali agar hasil paling fresh.
+     */
     override fun loadForRequest(url: HttpUrl): List<Cookie> {
-        return getCookieList(url.toString()).mapNotNull { Cookie.parse(url, it) }
+        manager.flush()                       // <-- tambahan: pastitas cookie terbaru
+        val raw = manager.getCookie(url.toString()).orEmpty()
+        return raw.split(';')
+            .map { it.trim() }                // <-- hilangkan spasi
+            .filter { it.isNotEmpty() }
+            .mapNotNull { Cookie.parse(url, it) }
     }
 
+    /**
+     * Menyimpan cookie hasil response ke CookieManager.
+     * Flush sekali di akhir sudah cukup karena CM thread-safe.
+     */
     override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
-        for (cookieEntry in cookies) {
-            manager.setCookie(url.toString(), "${cookieEntry.name}=${cookieEntry.value}")
+        val urlStr = url.toString()
+        for (c in cookies) {
+            manager.setCookie(urlStr, "${c.name}=${c.value}")
         }
         manager.flush()
     }

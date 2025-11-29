@@ -23,6 +23,7 @@ dependencies {
     implementation(libs.compose.androidx.material.icons.extended)
     implementation(libs.compose.accompanist.systemuicontroller)
     implementation(libs.compose.accompanist.insets)
-    implementation(libs.compose.landscapist.glide)
+    // implementation(libs.compose.landscapist.glide)
     implementation(libs.compose.coil)
+    implementation(libs.compose.coil.okhttp)
 }
