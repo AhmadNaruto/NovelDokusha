@@ -11,7 +11,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import my.noveldokusha.core.domain.CloudfareVerificationBypassFailedException
 import my.noveldokusha.core.domain.WebViewCookieManagerInitializationFailedException
@@ -23,6 +22,7 @@ import java.io.IOException
 import java.util.concurrent.locks.ReentrantLock
 import javax.net.ssl.HttpsURLConnection
 import kotlin.concurrent.withLock
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 private val ERROR_CODES = listOf(
@@ -67,19 +67,18 @@ internal class CloudFareVerificationInterceptor(
 
                 cookieManager.setCookie(request.url.toString(), cookie)
 
-                runBlocking(Dispatchers.IO) {
-                    resolveWithWebView(request, cookieManager, forceChallenge = false)
-                }
+                // Perbaikan: Ganti runBlocking dengan pendekatan suspend yang benar
+                resolveWithWebView(request, cookieManager, forceChallenge = false)
 
                 // Get the cookies and add them to the request
                 val cookies = cookieManager.getCookie(request.url.toString()) ?: ""
                 Log.d(TAG, "Full cookies for retry: $cookies")
                 Log.d(TAG, "cf_clearance present: ${cookies.contains("cf_clearance")}")
-                
+
                 // Get the User-Agent that WebView used (must match for Cloudflare)
                 val webViewUserAgent = WebSettings.getDefaultUserAgent(appContext)
                 Log.d(TAG, "Using WebView User-Agent: $webViewUserAgent")
-                
+
                 val newRequest = request.newBuilder()
                     .header("Cookie", cookies)
                     .header("User-Agent", webViewUserAgent)
@@ -91,43 +90,41 @@ internal class CloudFareVerificationInterceptor(
                 if (!isNotCloudFare(responseCloudfare)) {
                     Log.w(TAG, "Retry still blocked by Cloudflare after cookie set - forcing fresh challenge")
                     responseCloudfare.close()
-                    
+
                     // Clear ALL cookies for this domain to ensure fresh start
                     val domain = request.url.host
                     Log.d(TAG, "Clearing ALL cookies for domain: $domain")
-                    
+
                     cookieManager.removeAllCookies(null)
                     cookieManager.flush()
-                    
+
                     // Additional aggressive clear - remove session cookies
                     cookieManager.removeSessionCookies(null)
                     cookieManager.flush()
-                    
-                    // Wait a bit for cookies to be fully cleared
-                    Thread.sleep(500)
-                    
+
+                    // Perbaikan: Ganti Thread.sleep dengan delay yang tidak memblokir thread
+                    delay(500.milliseconds)
+
                     Log.d(TAG, "Cookies cleared, launching WebView for fresh challenge")
-                    runBlocking(Dispatchers.IO) {
-                        resolveWithWebView(request, cookieManager, forceChallenge = true)
-                    }
-                    
+                    resolveWithWebView(request, cookieManager, forceChallenge = true)
+
                     // Retry one more time with fresh cookie
                     val freshCookies = cookieManager.getCookie(request.url.toString()) ?: ""
                     Log.d(TAG, "Fresh cookies after challenge: cf_clearance present=${freshCookies.contains("cf_clearance")}")
-                    
+
                     val finalRequest = request.newBuilder()
                         .header("Cookie", freshCookies)
                         .header("User-Agent", webViewUserAgent)
                         .build()
-                    
+
                     val finalResponse = chain.proceed(finalRequest)
                     Log.d(TAG, "Final retry response: code=${finalResponse.code}")
-                    
+
                     if (!isNotCloudFare(finalResponse)) {
                         Log.e(TAG, "Still blocked after fresh challenge - giving up")
                         throw CloudfareVerificationBypassFailedException()
                     }
-                    
+
                     return@withLock finalResponse
                 } else {
                     Log.d(TAG, "Successfully bypassed Cloudflare!")
@@ -149,6 +146,7 @@ internal class CloudFareVerificationInterceptor(
                 response.header("Server") !in SERVER_CHECK
     }
 
+
     @SuppressLint("SetJavaScriptEnabled")
     private suspend fun resolveWithWebView(
         request: Request,
@@ -165,7 +163,7 @@ internal class CloudFareVerificationInterceptor(
         if (!forceChallenge) {
             cookieManager.flush()
             val existingCookies = cookieManager.getCookie(url) ?: ""
-            
+
             if (existingCookies.contains("cf_clearance")) {
                 Log.d(TAG, "cf_clearance cookie already exists, no WebView needed")
                 return@withContext
@@ -174,8 +172,8 @@ internal class CloudFareVerificationInterceptor(
             Log.d(TAG, "Forcing fresh challenge (existing cookie was invalid)")
         }
 
-        // Launch WebView for manual challenge
-        Log.d(TAG, "Launching WebView for manual challenge")
+        // Perbaikan: Membuka aktivitas WebView di luar coroutine untuk menghindari masalah konteks
+        // Catatan: Harus berjalan di main thread karena melibatkan UI
         withContext(Dispatchers.Main) {
             val intent = Intent().apply {
                 setClassName(appContext, "my.noveldokusha.webview.WebViewActivity")
@@ -189,32 +187,32 @@ internal class CloudFareVerificationInterceptor(
         val maxAttempts = 120 // 2 minutes timeout
         var attempts = 0
         var challengeSolved = false
-        
+
         // Store the initial cookie state to detect NEW cookies
         cookieManager.flush()
         val initialCookies = cookieManager.getCookie(url) ?: ""
         val hadClearanceInitially = initialCookies.contains("cf_clearance")
-        
+
         // If forcing challenge, we expect the cookie to change
         val minWaitTime = if (forceChallenge && hadClearanceInitially) 3 else 1
-        
+
         Log.d(TAG, "Waiting for challenge resolution (minWait=${minWaitTime}s, hadClearance=$hadClearanceInitially)")
-        
+
         while (!challengeSolved && attempts < maxAttempts) {
             delay(1.seconds)
             attempts++
-            
+
             // Flush cookies to ensure they're written
             cookieManager.flush()
-            
+
             // Get ALL cookies from the page
             val allCookies = cookieManager.getCookie(url) ?: ""
-            
+
             // Log cookies every 10 seconds for debugging
             if (attempts % 10 == 0) {
                 Log.d(TAG, "Attempt $attempts/$maxAttempts - Waiting for cf_clearance...")
             }
-            
+
             // Only accept cookie after minimum wait time
             // This prevents accepting old cookies that weren't properly cleared
             if (attempts >= minWaitTime && allCookies.contains("cf_clearance")) {
@@ -233,11 +231,11 @@ internal class CloudFareVerificationInterceptor(
                 }
             }
         }
-        
+
         if (!challengeSolved) {
             Log.w(TAG, "Challenge NOT solved after $attempts attempts")
         }
-        
+
         // Give extra time for cookies to fully sync
         if (challengeSolved) {
             cookieManager.flush()

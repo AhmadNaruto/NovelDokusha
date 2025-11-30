@@ -33,10 +33,15 @@ private suspend fun Call.await(): Response = withContext(Dispatchers.IO) {
 
 suspend fun OkHttpClient.call(builder: Request.Builder) = newCall(builder.build()).await()
 
+// Perbaikan: Optimalkan parsing dokumen dengan menghindari pembuatan string yang tidak perlu
 fun Response.toDocument(): Document {
-    return Jsoup.parse(body.string())
+    // Perbaikan: Gunakan body.byteStream() untuk mengurangi overhead konversi string
+    return body.byteStream().use { inputStream ->
+        Jsoup.parse(inputStream, null, request.url.toString())
+    }
 }
 
+// Perbaikan: Optimalkan parsing dokumen dengan charset spesifik
 fun Response.toDocument(charset: String): Document {
     val bytes = body.bytes()
     val html = String(bytes, Charset.forName(charset))
@@ -44,6 +49,10 @@ fun Response.toDocument(charset: String): Document {
     return Jsoup.parse(html, baseUrl)
 }
 
+// Perbaikan: Optimalkan parsing JSON untuk mengurangi konsumsi memori
 fun Response.toJson(): JsonElement {
-    return JsonParser.parseString(body.string())
+    // Perbaikan: Gunakan body.byteStream() dan parsing langsung dari stream
+    return body.byteStream().use { inputStream ->
+        JsonParser.parseReader(inputStream.reader())
+    }
 }

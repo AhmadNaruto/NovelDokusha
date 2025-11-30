@@ -30,8 +30,10 @@ class ScraperNetworkClient @Inject constructor(
     private val appInternalState: AppInternalState,
 ) : NetworkClient {
 
+    // Perbaikan: Meningkatkan ukuran cache untuk performa lebih baik dan mengurangi I/O
+    // Menggunakan 50MB (sebelumnya 5MB) untuk cache jaringan
     private val cacheDir = File(appContext.cacheDir, "network_cache")
-    private val cacheSize = 5L * 1024 * 1024
+    private val cacheSize = 50L * 1024 * 1024 // 50MB cache size
 
     private val cookieJar = ScraperCookieJar()
 
@@ -41,6 +43,7 @@ class ScraperNetworkClient @Inject constructor(
         level = HttpLoggingInterceptor.Level.HEADERS
     }
 
+    // Membuat instance OkHttpClient dengan konfigurasi optimal
     val client = OkHttpClient.Builder()
         .let {
             if (appInternalState.isDebugMode) {
@@ -52,10 +55,13 @@ class ScraperNetworkClient @Inject constructor(
         .addInterceptor(CloudFareVerificationInterceptor(appContext))
         .cookieJar(cookieJar)
         .cache(Cache(cacheDir, cacheSize))
-        .connectTimeout(30, TimeUnit.SECONDS)
+        .connectTimeout(15, TimeUnit.SECONDS)  // Perbaikan: Mengurangi timeout untuk respons lebih cepat
         .readTimeout(30, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)    // Menambahkan write timeout
+        .retryOnConnectionFailure(true)        // Menambahkan retry untuk koneksi yang gagal
         .build()
 
+    // Membuat instance terpisah dengan redirect aktif untuk menghindari pembuatan runtime
     private val clientWithRedirects = client
         .newBuilder()
         .followRedirects(true)
