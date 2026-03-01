@@ -37,11 +37,27 @@ jobs:
 
       - name: Build app
         run: |
-          ./gradlew assembleRelease -PlocalPropertiesFilePath=custom.properties
+          ./gradlew assembleRelease -PlocalPropertiesFilePath=custom.properties 2>&1 | tee build.log
+
+      - name: Upload build log (on failure)
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: build-log-failure
+          path: build.log
+          retention-days: 30
 
       - name: Create APK env info entries, rename APK
         run: |
           python .github/build_scripts/extract_info.py
+
+      - name: Upload build log (on success)
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: build-log-success
+          path: build.log
+          retention-days: 30
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
