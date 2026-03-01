@@ -130,11 +130,11 @@ class TranslationManagerGoogleFree(
                 }
                 val startTime = System.currentTimeMillis()
                 val response = client.newCall(request).execute()
-                val endTime = System.currentTimeMillis() // <-- Замер времени после запроса
+                val endTime = System.currentTimeMillis()
 
                 Log.d(TAG, "Network request took ${endTime - startTime} ms on Android ${android.os.Build.VERSION.SDK_INT}")
 
-                val responseBody = response.body?.string() ?: ""
+                val responseBody = response.body!!.string()
 
                 Log.d(TAG, "translateWithGoogleFree: response code=${response.code}, bodyLength=${responseBody.length}")
 

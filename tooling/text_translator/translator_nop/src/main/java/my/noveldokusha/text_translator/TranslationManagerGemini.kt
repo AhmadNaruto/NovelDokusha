@@ -146,7 +146,6 @@ class TranslationManagerGemini(
             $text
         """.trimIndent()
 
-        var lastException: Exception? = null
         val totalAttempts = retryCount * availableKeys.size // Try each key multiple times
 
         repeat(totalAttempts) { attempt ->
@@ -219,7 +218,7 @@ class TranslationManagerGemini(
                     }
                 }
 
-                val responseBody = response.body?.string() ?: ""
+                val responseBody = response.body!!.string()
                 Log.d(TAG, "translateWithGemini: response body length=${responseBody.length}")
 
                 try {
@@ -264,7 +263,6 @@ class TranslationManagerGemini(
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "translateWithGemini: parse error - ${e.message}", e)
-                    lastException = e
                     if (attempt < totalAttempts - 1) {
                         kotlinx.coroutines.delay(1000L * attemptWithinKey)
                         return@repeat
@@ -272,7 +270,6 @@ class TranslationManagerGemini(
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "translateWithGemini: error on attempt ${attempt + 1} - ${e.message}", e)
-                lastException = e
                 if (attempt < totalAttempts - 1) {
                     kotlinx.coroutines.delay(1000L * attemptWithinKey)
                 } else {
@@ -344,7 +341,6 @@ class TranslationManagerGemini(
             $numberedTexts
         """.trimIndent()
 
-        var lastException: Exception? = null
         val retryCount = 3
         val totalAttempts = retryCount * availableKeys.size
 
@@ -412,7 +408,7 @@ class TranslationManagerGemini(
                     }
                 }
 
-                val responseBody = response.body?.string() ?: ""
+                val responseBody = response.body!!.string()
                 Log.d(TAG, "translateBatch: response length=${responseBody.length}")
 
                 try {
@@ -500,7 +496,6 @@ class TranslationManagerGemini(
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "translateBatch: parse error - ${e.message}", e)
-                    lastException = e
                     if (attempt < totalAttempts - 1) {
                         kotlinx.coroutines.delay(1000L * attemptWithinKey)
                         return@repeat
@@ -508,7 +503,6 @@ class TranslationManagerGemini(
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "translateBatch: error on attempt ${attempt + 1} - ${e.message}", e)
-                lastException = e
                 if (attempt < totalAttempts - 1) {
                     kotlinx.coroutines.delay(1000L * attemptWithinKey)
                 }
