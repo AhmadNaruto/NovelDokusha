@@ -29,11 +29,15 @@ jobs:
 
       - name: Setup APK signing
         run: |
+          # Decode signing key from secrets
           echo -n ${{ secrets.SIGNING_KEY }} | base64 -d > HarzBaiQ.jks
+
+          # Create signing properties
           echo storeFile=HarzBaiQ.jks > custom.properties
           echo storePassword=${{ secrets.KEY_STORE_PASSWORD }} >> custom.properties
           echo keyAlias=${{ secrets.ALIAS }} >> custom.properties
           echo keyPassword=${{ secrets.KEY_PASSWORD }} >> custom.properties
+          echo "Signing configuration created successfully"
 
       - name: Build app
         run: |
