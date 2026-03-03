@@ -41,9 +41,12 @@ fun Theme(
 fun InternalTheme(
     theme: Themes = if (isSystemInDarkTheme()) Themes.DARK else Themes.LIGHT,
     useModernTheme: Boolean = true,
+    useDynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val (colorScheme, appColor) = if (useModernTheme) {
+    val (colorScheme, appColor) = if (useDynamicColor && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+        getDynamicThemeColors(theme)
+    } else if (useModernTheme) {
         getModernThemeColors(theme)
     } else {
         getLegacyThemeColors(theme)
@@ -98,6 +101,24 @@ private fun getLegacyThemeColors(theme: Themes): Pair<androidx.compose.material3
         Themes.LIGHT -> light_colorScheme
         Themes.DARK -> dark_colorScheme
         Themes.BLACK -> black_colorScheme
+    }
+    
+    val appColor = when (theme) {
+        Themes.LIGHT -> light_appColor
+        Themes.DARK -> dark_appColor
+        Themes.BLACK -> black_appColor
+    }
+    
+    return colorScheme to appColor
+}
+
+@Composable
+private fun getDynamicThemeColors(theme: Themes): Pair<androidx.compose.material3.ColorScheme, AppColor> {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val colorScheme = if (theme == Themes.LIGHT) {
+        androidx.compose.material3.dynamicLightColorScheme(context)
+    } else {
+        androidx.compose.material3.dynamicDarkColorScheme(context)
     }
     
     val appColor = when (theme) {
