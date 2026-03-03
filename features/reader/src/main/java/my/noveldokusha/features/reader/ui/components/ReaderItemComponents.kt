@@ -178,7 +178,7 @@ fun ReaderTitleItem(
 }
 
 @Composable
-fun ReaderBodyItem(
+internal fun ReaderBodyItem(
     text: String,
     location: ReaderItem.Location,
     typeface: Typeface,
@@ -228,7 +228,7 @@ fun ReaderBodyItem(
 }
 
 @Composable
-fun ReaderImageItem(
+internal fun ReaderImageItem(
     image: ReaderItem.Image,
     bookUrl: String,
     location: ReaderItem.Location,
