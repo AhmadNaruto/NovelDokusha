@@ -4,27 +4,24 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import my.noveldokusha.core.Response
 import my.noveldokusha.network.NetworkClient
-import my.noveldokusha.network.add
-import my.noveldokusha.network.addPath
+import my.noveldokusha.network.appendQuery
+import my.noveldokusha.network.appendPaths
 import my.noveldokusha.network.toDocument
-import my.noveldokusha.network.toUrlBuilderSafe
+import my.noveldokusha.network.toUriBuilderSafe
 import my.noveldokusha.network.tryConnect
 import my.noveldokusha.scraper.domain.ChapterResult
+import org.jsoup.nodes.Element
 
 /**
  * Template for ReadNovelFull-style sites.
- * 
+ *
  * Common pattern:
  * - Book page: /novel-name.html
  * - Chapters loaded via AJAX from separate endpoint
  * - Search: /novel-list/search?keyword=query
- * - Catalog: /novel-list/most-popular-novel or similar
- * 
- * Used by:
- * - ReadNovelFull.com
- * - BestLightNovel.com
- * - NovelHall.com
- * - And 11+ other sites from lightnovel-crawler
+ * - Catalog: /novel-list/most-popular-novel
+ *
+ * Used by: ReadNovelFull, BestLightNovel, NovelHall, etc.
  */
 abstract class BaseNovelFullScraper(
     networkClient: NetworkClient
@@ -41,17 +38,17 @@ abstract class BaseNovelFullScraper(
     override val selectCatalogItemCover: String = "img[src]"
     override val selectPaginationLastPage: String = "ul.pagination li:last-child.disabled"
 
-    // Search selectors (usually same as catalog)
+    // Search selectors
     override val selectSearchItems: String = ".row"
     override val selectSearchItemTitle: String = "a[href]"
     override val selectSearchItemUrl: String = "a[href]"
     override val selectSearchItemCover: String = "img[src]"
 
-    // Novel list path (override if different)
+    // Configuration
     protected open val novelListPath: String = "novel-list"
     protected open val catalogOrderBy: String = "most-popular-novel"
-    
-    // Ajax chapter loading support
+
+    // AJAX chapter loading
     protected open val useAjaxChapterLoading: Boolean = true
     protected open val ajaxChapterPath: String = "ajax/chapter-archive"
     protected open val novelIdAttribute: String = "data-novel-id"
@@ -59,48 +56,51 @@ abstract class BaseNovelFullScraper(
 
     override fun buildCatalogUrl(index: Int): String {
         val page = index + 1
-        return catalogUrl.toUrlBuilderSafe().apply {
-            if (page > 1) add("page", page)
-        }.toString()
+        return catalogUrl.toUriBuilderSafe()
+            .appendQuery("page", page)
+            .toString()
     }
 
-    override fun buildSearchUrl(index: Int, input: String): String {
+    override fun buildSearchUrl(index: Int, query: String): String {
         val page = index + 1
-        val builder = baseUrl.toUrlBuilderSafe().addPath(novelListPath, "search")
-        builder.add("keyword", input)
-        if (page > 1) builder.add("page", page)
-        return builder.toString()
+        return baseUrl.toUriBuilderSafe()
+            .appendPaths(novelListPath, "search")
+            .appendQuery("keyword", query)
+            .appendQuery("page", page)
+            .toString()
     }
 
-    override suspend fun fetchChapterList(bookUrl: String): List<ChapterResult> {
-        return if (useAjaxChapterLoading) {
+    override suspend fun fetchChapterList(bookUrl: String): List<ChapterResult> =
+        if (useAjaxChapterLoading) {
             fetchChapterListViaAjax(bookUrl)
         } else {
             super.fetchChapterList(bookUrl)
         }
-    }
 
-    protected open suspend fun fetchChapterListViaAjax(bookUrl: String): List<ChapterResult> = 
+    protected open suspend fun fetchChapterListViaAjax(bookUrl: String): List<ChapterResult> =
         withContext(Dispatchers.Default) {
             try {
                 val doc = networkClient.get(bookUrl).toDocument()
-                val novelId = doc.selectFirst(novelIdSelector)?.attr(novelIdAttribute)
+                val novelId = doc.selectFirst(novelIdSelector)
+                    ?.attr(novelIdAttribute)
                     ?: throw Exception("Novel ID not found")
-                
+
                 val ajaxUrl = baseUrl + ajaxChapterPath + "?novelId=" + novelId
-                
-                networkClient.get(ajaxUrl)
-                    .toDocument()
+
+                networkClient.get(ajaxUrl).toDocument()
                     .select(selectChapterList)
-                    .map { element ->
-                        ChapterResult(
-                            title = element.text(),
-                            url = chapterUrlTransform(element.attr("href"))
-                        )
+                    .mapNotNull { element ->
+                        element.toChapterResult()
                     }
-            } catch (e: Exception) {
-                // Fallback to regular chapter list if ajax fails
+            } catch (_: Exception) {
+                // Fallback to regular chapter list
                 super.fetchChapterList(bookUrl)
             }
         }
+
+    private fun Element.toChapterResult(): ChapterResult? {
+        val title = text().takeIf { it.isNotEmpty() } ?: return null
+        val url = attr("href").takeIf { it.isNotEmpty() } ?: return null
+        return ChapterResult(title, transformChapterUrl(url))
+    }
 }

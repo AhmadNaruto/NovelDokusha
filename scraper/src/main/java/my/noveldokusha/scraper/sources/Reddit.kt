@@ -2,7 +2,7 @@ package my.noveldokusha.scraper.sources
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import my.noveldokusha.network.toUrlBuilder
+import my.noveldokusha.network.toUrlBuilderSafe
 import my.noveldokusha.scraper.R
 import my.noveldokusha.scraper.SourceInterface
 import my.noveldokusha.scraper.TextExtractor
@@ -19,11 +19,8 @@ class Reddit : SourceInterface.Base {
     override val nameStrId = R.string.source_name_reddit
     override val baseUrl = "https://www.reddit.com/"
 
-    override suspend fun transformChapterUrl(
-        url: String
-    ): String = withContext(Dispatchers.Default) {
-        url.toUrlBuilder()!!.authority("old.reddit.com").toString()
-    }
+    override fun transformChapterUrl(url: String): String =
+        url.toUrlBuilderSafe().authority("old.reddit.com").toString()
 
     override suspend fun getChapterTitle(
         doc: Document

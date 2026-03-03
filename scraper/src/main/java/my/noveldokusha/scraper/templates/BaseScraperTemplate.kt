@@ -6,6 +6,7 @@ import my.noveldokusha.core.PagedList
 import my.noveldokusha.core.Response
 import my.noveldokusha.network.NetworkClient
 import my.noveldokusha.network.toDocument
+import my.noveldokusha.network.toUriBuilderSafe
 import my.noveldokusha.network.tryConnect
 import my.noveldokusha.network.tryFlatConnect
 import my.noveldokusha.scraper.SourceInterface
@@ -16,194 +17,251 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
 /**
- * Base abstract scraper template that implements common functionality for web novel sites.
- * Concrete scrapers extend this and provide CSS selectors for their specific site layout.
+ * Base template for web novel scrapers using the template method pattern.
  *
- * This follows the template method pattern similar to lightnovel-crawler's Python templates.
+ * Concrete scrapers extend this class and provide CSS selectors specific to their site.
+ * This reduces code duplication and provides consistent error handling.
  */
 abstract class BaseScraperTemplate(
     protected val networkClient: NetworkClient
 ) : SourceInterface.Catalog {
 
-    // CSS Selectors - Override these in subclasses for each site
+    // ========================================
+    // Required CSS Selectors
+    // ========================================
+
+    /** Selector for book cover image element */
     protected abstract val selectBookCover: String
+
+    /** Selector for book description element */
     protected abstract val selectBookDescription: String
+
+    /** Selector for chapter list container */
     protected abstract val selectChapterList: String
+
+    /** Selector for chapter content element */
     protected abstract val selectChapterContent: String
+
+    /** Selector for catalog items container */
     protected abstract val selectCatalogItems: String
+
+    /** Selector for catalog item title */
     protected abstract val selectCatalogItemTitle: String
+
+    /** Selector for catalog item URL */
     protected abstract val selectCatalogItemUrl: String
+
+    /** Selector for catalog item cover image */
     protected abstract val selectCatalogItemCover: String
+
+    // ========================================
+    // Optional CSS Selectors
+    // ========================================
+
+    /** Selector for pagination last page indicator */
     protected open val selectPaginationLastPage: String? = null
 
-    // Optional CSS selectors for search functionality
+    /** Selector for search results (defaults to catalog selectors) */
     protected open val selectSearchItems: String? = null
     protected open val selectSearchItemTitle: String? = null
     protected open val selectSearchItemUrl: String? = null
     protected open val selectSearchItemCover: String? = null
 
-    // Optional transformations
-    protected open fun transformBookUrl(url: String): String =
-        if (url.startsWith("http")) url else baseUrl + url.removePrefix("/")
+    // ========================================
+    // URL Transformation Hooks
+    // ========================================
 
-    protected open fun chapterUrlTransform(url: String): String =
-        if (url.startsWith("http")) url else baseUrl + url.removePrefix("/")
+    protected open fun transformBookUrl(url: String): String =
+        url.ensureAbsolute(baseUrl)
+
+    override fun transformChapterUrl(url: String): String =
+        url.ensureAbsolute(baseUrl)
 
     protected open fun transformCoverUrl(url: String): String =
-        if (url.startsWith("http")) url else baseUrl + url.removePrefix("/")
+        url.ensureAbsolute(baseUrl)
 
-    // Template methods with default implementations
+    // ========================================
+    // SourceInterface.Catalog Implementation
+    // ========================================
+
     override suspend fun getChapterTitle(doc: Document): String? = null
 
     override suspend fun getChapterText(doc: Document): String = withContext(Dispatchers.Default) {
-        doc.selectFirst(selectChapterContent)?.let { TextExtractor.get(it) } ?: ""
+        doc.selectFirst(selectChapterContent)?.let { TextExtractor.extract(it) }.orEmpty()
     }
 
-    override suspend fun getBookCoverImageUrl(
-        bookUrl: String
-    ): Response<String?> = withContext(Dispatchers.Default) {
-        tryConnect {
-            networkClient.get(bookUrl).toDocument()
-                .selectFirst(selectBookCover)
-                ?.let { extractImageUrl(it) }
-                ?.let { transformCoverUrl(it) }
-        }
-    }
-
-    override suspend fun getBookDescription(
-        bookUrl: String
-    ): Response<String?> = withContext(Dispatchers.Default) {
-        tryConnect {
-            networkClient.get(bookUrl).toDocument()
-                .selectFirst(selectBookDescription)
-                ?.let { TextExtractor.get(it) }
-        }
-    }
-
-    override suspend fun getChapterList(
-        bookUrl: String
-    ): Response<List<ChapterResult>> = withContext(Dispatchers.Default) {
-        tryConnect {
-            fetchChapterList(bookUrl)
-        }
-    }
-
-    protected open suspend fun fetchChapterList(bookUrl: String): List<ChapterResult> {
-        return networkClient.get(bookUrl).toDocument()
-            .select(selectChapterList)
-            .map { element ->
-                ChapterResult(
-                    title = element.text(),
-                    url = transformChapterUrl(element.attr("href"))
-                )
+    override suspend fun getBookCoverImageUrl(bookUrl: String): Response<String?> =
+        withContext(Dispatchers.Default) {
+            tryConnect {
+                networkClient.get(bookUrl).toDocument()
+                    .selectFirst(selectBookCover)
+                    ?.extractImageUrl()
+                    ?.let { transformCoverUrl(it) }
             }
-    }
-
-    override suspend fun getCatalogList(
-        index: Int
-    ): Response<PagedList<BookResult>> = withContext(Dispatchers.Default) {
-        val url = buildCatalogUrl(index)
-        tryFlatConnect {
-            val doc = networkClient.get(url).toDocument()
-            parseCatalogPage(doc, index)
         }
-    }
+
+    override suspend fun getBookDescription(bookUrl: String): Response<String?> =
+        withContext(Dispatchers.Default) {
+            tryConnect {
+                networkClient.get(bookUrl).toDocument()
+                    .selectFirst(selectBookDescription)
+                    ?.let { TextExtractor.extract(it) }
+            }
+        }
+
+    override suspend fun getChapterList(bookUrl: String): Response<List<ChapterResult>> =
+        withContext(Dispatchers.Default) {
+            tryConnect { fetchChapterList(bookUrl) }
+        }
+
+    override suspend fun getCatalogList(index: Int): Response<PagedList<BookResult>> =
+        withContext(Dispatchers.Default) {
+            val url = buildCatalogUrl(index)
+            tryFlatConnect("index=$index, url=$url") {
+                val doc = networkClient.get(url).toDocument()
+                parseCatalogPage(doc, index)
+            }
+        }
 
     override suspend fun getCatalogSearch(
         index: Int,
-        input: String
+        query: String
     ): Response<PagedList<BookResult>> = withContext(Dispatchers.Default) {
-        if (input.isBlank())
-            return@withContext Response.Success(PagedList.createEmpty(index = index))
+        if (query.isBlank()) {
+            return@withContext Response.Success(PagedList.createEmpty(index))
+        }
 
-        val url = buildSearchUrl(index, input)
-        tryFlatConnect {
+        val url = buildSearchUrl(index, query)
+        tryFlatConnect("index=$index, query=$query, url=$url") {
             val doc = networkClient.get(url).toDocument()
-            parseSearchPage(doc, index, input)
+            parseSearchPage(doc, index, query)
         }
     }
 
+    // ========================================
+    // Abstract Methods for Subclasses
+    // ========================================
+
+    /** Builds the catalog URL for the given page index. */
     protected abstract fun buildCatalogUrl(index: Int): String
-    protected abstract fun buildSearchUrl(index: Int, input: String): String
 
-    protected open suspend fun parseCatalogPage(doc: Document, index: Int): Response<PagedList<BookResult>> =
-        withContext(Dispatchers.Default) {
-            tryConnect {
-                val books = doc.select(selectCatalogItems).mapNotNull { element ->
-                    parseCatalogItem(element)
-                }
+    /** Builds the search URL for the given page index and query. */
+    protected abstract fun buildSearchUrl(index: Int, query: String): String
 
-                PagedList(
-                    list = books,
-                    index = index,
-                    isLastPage = isLastPage(doc)
+    // ========================================
+    // Protected Helper Methods
+    // ========================================
+
+    protected open suspend fun fetchChapterList(bookUrl: String): List<ChapterResult> =
+        networkClient.get(bookUrl).toDocument()
+            .select(selectChapterList)
+            .mapNotNull { element ->
+                val title = element.text().takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+                val url = element.attr("href").takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+                ChapterResult(title, transformChapterUrl(url))
+            }
+
+    protected open suspend fun parseCatalogPage(
+        doc: Document,
+        index: Int
+    ): Response<PagedList<BookResult>> = withContext(Dispatchers.Default) {
+        tryConnect {
+            val books = doc.select(selectCatalogItems)
+                .mapNotNull { element -> parseCatalogItem(element) }
+
+            PagedList(
+                list = books,
+                index = index,
+                isLastPage = isLastPage(doc)
+            )
+        }
+    }
+
+    protected open suspend fun parseSearchPage(
+        doc: Document,
+        index: Int,
+        query: String
+    ): Response<PagedList<BookResult>> = withContext(Dispatchers.Default) {
+        val itemsSelector = selectSearchItems ?: selectCatalogItems
+        val titleSelector = selectSearchItemTitle ?: selectCatalogItemTitle
+        val urlSelector = selectSearchItemUrl ?: selectCatalogItemUrl
+        val coverSelector = selectSearchItemCover ?: selectCatalogItemCover
+
+        tryConnect {
+            val books = doc.select(itemsSelector).mapNotNull { element ->
+                val title = element.selectFirst(titleSelector)?.text() ?: return@mapNotNull null
+                val url = element.selectFirst(urlSelector)?.attr("href") ?: return@mapNotNull null
+                val cover = element.selectFirst(coverSelector)?.extractImageUrl().orEmpty()
+
+                BookResult(
+                    title = title,
+                    url = transformBookUrl(url),
+                    coverImageUrl = transformCoverUrl(cover)
                 )
             }
+
+            PagedList(
+                list = books,
+                index = index,
+                isLastPage = isLastPage(doc)
+            )
         }
-
-    protected open suspend fun parseSearchPage(doc: Document, index: Int, query: String): Response<PagedList<BookResult>> =
-        withContext(Dispatchers.Default) {
-            val searchItems = selectSearchItems ?: selectCatalogItems
-            val searchTitle = selectSearchItemTitle ?: selectCatalogItemTitle
-            val searchUrl = selectSearchItemUrl ?: selectCatalogItemUrl
-            val searchCover = selectSearchItemCover ?: selectCatalogItemCover
-
-            tryConnect {
-                val books = doc.select(searchItems).mapNotNull { element ->
-                    val title = element.selectFirst(searchTitle)?.text() ?: return@mapNotNull null
-                    val url = element.selectFirst(searchUrl)?.attr("href") ?: return@mapNotNull null
-                    val cover = element.selectFirst(searchCover)?.let { extractImageUrl(it) } ?: ""
-
-                    BookResult(
-                        title = title,
-                        url = transformBookUrl(url),
-                        coverImageUrl = processImageUrlWhen(transformCoverUrl(cover))
-                    )
-                }
-
-                PagedList(
-                    list = books,
-                    index = index,
-                    isLastPage = isLastPage(doc)
-                )
-            }
-        }
+    }
 
     protected open fun parseCatalogItem(element: Element): BookResult? {
         val title = element.selectFirst(selectCatalogItemTitle)?.text() ?: return null
         val url = element.selectFirst(selectCatalogItemUrl)?.attr("href") ?: return null
-        val cover = element.selectFirst(selectCatalogItemCover)?.let { extractImageUrl(it) } ?: ""
+        val cover = element.selectFirst(selectCatalogItemCover)?.extractImageUrl().orEmpty()
 
         return BookResult(
             title = title,
             url = transformBookUrl(url),
-            coverImageUrl = processImageUrlWhen(transformCoverUrl(cover))
+            coverImageUrl = transformCoverUrl(cover)
         )
     }
 
     protected open fun isLastPage(doc: Document): Boolean {
         return selectPaginationLastPage?.let { selector ->
             doc.selectFirst(selector)?.let { element ->
-                // Check if element has "disabled" class or is marked as active
                 element.hasClass("disabled") || element.hasClass("active")
             } ?: true
         } ?: true
     }
-    // Fix cover image size, not work to NovelFull, AllNovel
-    fun processImageUrlWhen(coverImageUrl: String?): String {
-        if (coverImageUrl == null) return ""
-        return when {
-            coverImageUrl.contains("novel_200_89") -> coverImageUrl.replace("novel_200_89", "novel")
-            coverImageUrl.contains("t-200x89") -> coverImageUrl.replace("t-200x89", "t-300x439")
-            else -> coverImageUrl
-        }
-    }
-    protected fun extractImageUrl(element: Element): String {
-        return when {
-            element.hasAttr("data-src") -> element.attr("data-src")
-            element.hasAttr("src") -> element.attr("src")
-            element.hasAttr("data-lazy-src") -> element.attr("data-lazy-src")
+
+    /**
+     * Extracts image URL from an element, checking common lazy-loading attributes.
+     */
+    @Suppress("NOTHING_TO_INLINE")
+    protected inline fun Element.extractImageUrl(): String =
+        when {
+            hasAttr("data-src") -> attr("data-src")
+            hasAttr("src") -> attr("src")
+            hasAttr("data-lazy-src") -> attr("data-lazy-src")
             else -> ""
         }
+
+    /**
+     * Normalizes image URLs by removing size constraints.
+     */
+    @Suppress("NOTHING_TO_INLINE")
+    protected inline fun normalizeImageUrl(url: String): String = when {
+        url.isEmpty() -> ""
+        url.contains("novel_200_89") -> url.replace("novel_200_89", "novel")
+        url.contains("t-200x89") -> url.replace("t-200x89", "t-300x439")
+        else -> url
+    }
+
+    companion object {
+        /**
+         * Ensures a URL is absolute by prepending the base URL if necessary.
+         */
+        private fun String.ensureAbsolute(baseUrl: String): String =
+            when {
+                startsWith("http", ignoreCase = true) -> this
+                startsWith("/") -> baseUrl.toUriBuilderSafe()
+                    .apply { appendPath(removePrefix("/")) }
+                    .toString()
+                else -> baseUrl.toUriBuilderSafe().appendPath(this).toString()
+            }
     }
 }

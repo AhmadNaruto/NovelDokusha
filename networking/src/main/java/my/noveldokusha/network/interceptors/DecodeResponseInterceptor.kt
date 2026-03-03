@@ -10,10 +10,9 @@ import okio.source
 import org.brotli.dec.BrotliInputStream
 
 /**
- * Interceptor to decode/uncompress a response body
- * with header content-encoding value:
- * 1) br
- * 2) gzip
+ * Interceptor that decompresses response bodies encoded with:
+ * - brotli (br)
+ * - gzip
  */
 internal class DecodeResponseInterceptor : Interceptor {
 
@@ -24,9 +23,8 @@ internal class DecodeResponseInterceptor : Interceptor {
             return response
         }
 
-        val body = response.body
-        val contentEncoding = response.header("Content-Encoding")?.lowercase()
-            ?: return response
+        val body = response.body ?: return response
+        val contentEncoding = response.header("Content-Encoding")?.lowercase() ?: return response
 
         val decompressedSource = when (contentEncoding) {
             "br" -> BrotliInputStream(body.source().inputStream()).source().buffer()
@@ -34,7 +32,7 @@ internal class DecodeResponseInterceptor : Interceptor {
             else -> return response
         }
 
-        // We set the content length to -1 as we can't knew the uncompressed size without reading it
+        // Content length is unknown after decompression
         return response.newBuilder()
             .removeHeader("Content-Encoding")
             .removeHeader("Content-Length")

@@ -1,74 +1,92 @@
 package my.noveldokusha.scraper
 
-import org.jsoup.nodes.Element
 import org.jsoup.nodes.Node
 import org.jsoup.nodes.TextNode
 
+/**
+ * Utility object for extracting text from HTML nodes.
+ * Handles paragraphs, line breaks, and embedded images.
+ */
 object TextExtractor {
+
+    private const val PARAGRAPH_SEPARATOR = "\n\n"
+    private const val LINE_BREAK = "\n"
+    private const val IMAGE_YREL_DEFAULT = 1.45f
+
     /**
-     * Given an node, extract the text.
-     *
-     * @return string where each paragraph is
-     * separated by two newlines
+     * Extracts text content from an HTML node.
+     * Paragraphs are separated by double newlines.
+     * @deprecated Use [extract] instead
      */
-    fun get(node: Node?): String {
-        val children = node?.childNodes() ?: return ""
-        if (children.isEmpty())
-            return ""
+    @Deprecated("Use extract", ReplaceWith("extract(node)"))
+    fun get(node: Node?): String = extract(node)
+
+    /**
+     * Extracts text content from an HTML node.
+     * Paragraphs are separated by double newlines.
+     */
+    fun extract(node: Node?): String {
+        val children = node?.childNodes().orEmpty()
+        if (children.isEmpty()) return ""
 
         return children.joinToString("") { child ->
             when {
-                child.nodeName() == "p" -> getPTraverse(child)
-                child.nodeName() == "br" -> "\n"
-                child.nodeName() == "hr" -> "\n\n"
-                child.nodeName() == "img" -> declareImgEntry(child)
+                child.isParagraph() -> extractParagraph(child)
+                child.isLineBreak() -> LINE_BREAK
+                child.isHorizontalRule() -> PARAGRAPH_SEPARATOR
+                child.isImage() -> embedImage(child)
                 child is TextNode -> child.text().trim()
-                else -> getNodeTextTraverse(child)
+                else -> extractNodeText(child)
             }
         }
     }
 
-    private fun getPTraverse(node: Node): String {
-        fun innerTraverse(node: Node): String = node.childNodes().joinToString("") { child ->
+    private fun extractParagraph(node: Node): String {
+        val text = node.childNodes().joinToString("") { child ->
             when {
-                child.nodeName() == "br" -> "\n"
+                child.isLineBreak() -> LINE_BREAK
                 child is TextNode -> child.text()
-                child.nodeName() == "img" -> declareImgEntry(child)
-                else -> innerTraverse(child)
+                child.isImage() -> embedImage(child)
+                else -> extractNodeText(child)
             }
-        }
+        }.trim()
 
-        val paragraph = innerTraverse(node).trim()
-        return if (paragraph.isEmpty()) "" else innerTraverse(node).trim() + "\n\n"
+        return text.takeIf { it.isNotEmpty() }?.plus(PARAGRAPH_SEPARATOR).orEmpty()
     }
 
-    private fun getNodeTextTraverse(node: Node): String {
+    private fun extractNodeText(node: Node): String {
         val children = node.childNodes()
-        if (children.isEmpty())
-            return ""
+        if (children.isEmpty()) return ""
 
         return children.joinToString("") { child ->
             when {
-                child.nodeName() == "p" -> getPTraverse(child)
-                child.nodeName() == "br" -> "\n"
-                child.nodeName() == "hr" -> "\n\n"
-                child.nodeName() == "img" -> declareImgEntry(child)
+                child.isParagraph() -> extractParagraph(child)
+                child.isLineBreak() -> LINE_BREAK
+                child.isHorizontalRule() -> PARAGRAPH_SEPARATOR
+                child.isImage() -> embedImage(child)
                 child is TextNode -> {
                     val text = child.text().trim()
-                    if (text.isEmpty()) "" else text + "\n\n"
+                    text.takeIf { it.isNotEmpty() }?.plus(PARAGRAPH_SEPARATOR).orEmpty()
                 }
-                else -> getNodeTextTraverse(child)
+                else -> extractNodeText(child)
             }
         }
     }
 
-    // Rewrites the image node to xml for the next stage.
-    private fun declareImgEntry(node: Node): String {
-        val relPathEncoded = (node as? Element)?.attr("src") ?: return ""
-        val text = BookTextMapper.ImgEntry(
-            path = relPathEncoded,
-            yRel = 1.45f
-        ).toXMLString()
-        return "\n\n$text\n\n"
+    private fun embedImage(node: Node): String {
+        val src = (node as? org.jsoup.nodes.Element)?.attr("src").orEmpty()
+        if (src.isEmpty()) return ""
+
+        val imageEntry = BookTextMapper.ImgEntry(
+            path = src,
+            yRel = IMAGE_YREL_DEFAULT
+        )
+        return "\n\n${imageEntry.toXmlString()}\n\n"
     }
+
+    // Extension predicates for node type checking
+    private fun Node.isParagraph() = nodeName() == "p"
+    private fun Node.isLineBreak() = nodeName() == "br"
+    private fun Node.isHorizontalRule() = nodeName() == "hr"
+    private fun Node.isImage() = nodeName() == "img"
 }

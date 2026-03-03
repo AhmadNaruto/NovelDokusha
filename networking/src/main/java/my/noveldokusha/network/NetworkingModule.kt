@@ -6,11 +6,14 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
+/**
+ * Hilt module that provides networking dependencies.
+ */
 @InstallIn(SingletonComponent::class)
 @Module
 abstract class NetworkingModule {
 
     @Singleton
     @Binds
-    internal abstract fun bindNetworkClient(client: ScraperNetworkClient): NetworkClient
+    abstract fun bindNetworkClient(client: ScraperNetworkClient): NetworkClient
 }

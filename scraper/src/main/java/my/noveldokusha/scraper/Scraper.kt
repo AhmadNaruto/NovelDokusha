@@ -41,16 +41,26 @@ import my.noveldokusha.scraper.sources.Ttkan
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Central registry for all novel sources and databases.
+ * Provides methods to find compatible sources based on URLs.
+ */
 @Singleton
 class Scraper @Inject constructor(
-    networkClient: NetworkClient
+    private val networkClient: NetworkClient
 ) {
-    val databasesList = setOf(
+    /**
+     * List of all registered databases.
+     */
+    val databases: Set<DatabaseInterface> = setOf(
         NovelUpdates(networkClient),
         BakaUpdates(networkClient)
     )
 
-    val sourcesList = setOf(
+    /**
+     * List of all registered sources.
+     */
+    val sources: Set<SourceInterface> = setOf(
         ReadNovelFull(networkClient),
         RoyalRoad(networkClient),
         my.noveldokusha.scraper.sources.NovelUpdates(networkClient),
@@ -89,21 +99,42 @@ class Scraper @Inject constructor(
         WtrLab(networkClient),
     )
 
-    val sourcesCatalogsList = sourcesList.filterIsInstance<SourceInterface.Catalog>()
-    val sourcesCatalogsLanguagesList = sourcesCatalogsList.mapNotNull { it.language }.toSet()
+    /**
+     * Sources that support catalog browsing.
+     */
+    val catalogSources: List<SourceInterface.Catalog> =
+        sources.filterIsInstance<SourceInterface.Catalog>()
 
-    private fun String.isCompatibleWithBaseUrl(baseUrl: String): Boolean {
-        val normalizedUrl = if (this.endsWith("/")) this else "$this/"
-        val normalizedBaseUrl = if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
-        return normalizedUrl.startsWith(normalizedBaseUrl)
+    /**
+     * Unique languages available across all catalog sources.
+     */
+    val catalogLanguages: Set<my.noveldokusha.core.LanguageCode> =
+        catalogSources.mapNotNull { it.language }.toSet()
+
+    /**
+     * Finds a source that matches the given URL based on its base URL.
+     */
+    fun findSource(url: String): SourceInterface? =
+        sources.find { url.isCompatibleWith(it.baseUrl) }
+
+    /**
+     * Finds a catalog source that matches the given URL.
+     */
+    fun findCatalogSource(url: String): SourceInterface.Catalog? =
+        catalogSources.find { url.isCompatibleWith(it.baseUrl) }
+
+    /**
+     * Finds a database that matches the given URL.
+     */
+    fun findDatabase(url: String): DatabaseInterface? =
+        databases.find { url.isCompatibleWith(it.baseUrl) }
+
+    /**
+     * Checks if a URL is compatible with a base URL.
+     */
+    private fun String.isCompatibleWith(baseUrl: String): Boolean {
+        val normalizedUrl = removeSuffix("/")
+        val normalizedBaseUrl = baseUrl.removeSuffix("/")
+        return startsWith("$normalizedBaseUrl/")
     }
-
-    fun getCompatibleSource(url: String): SourceInterface? =
-        sourcesList.find { url.isCompatibleWithBaseUrl(it.baseUrl) }
-
-    fun getCompatibleSourceCatalog(url: String): SourceInterface.Catalog? =
-        sourcesCatalogsList.find { url.isCompatibleWithBaseUrl(it.baseUrl) }
-
-    fun getCompatibleDatabase(url: String): DatabaseInterface? =
-        databasesList.find { url.isCompatibleWithBaseUrl(it.baseUrl) }
 }

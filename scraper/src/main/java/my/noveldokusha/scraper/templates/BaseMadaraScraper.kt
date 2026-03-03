@@ -3,30 +3,27 @@ package my.noveldokusha.scraper.templates
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import my.noveldokusha.network.NetworkClient
-import my.noveldokusha.network.add
-import my.noveldokusha.network.addPath
+import my.noveldokusha.network.appendQuery
+import my.noveldokusha.network.appendPaths
 import my.noveldokusha.network.postRequest
 import my.noveldokusha.network.toDocument
-import my.noveldokusha.network.toUrlBuilderSafe
+import my.noveldokusha.network.toUriBuilderSafe
 import my.noveldokusha.network.tryConnect
 import my.noveldokusha.scraper.domain.ChapterResult
 import okhttp3.FormBody
+import org.jsoup.nodes.Element
 
 /**
  * Template for WordPress Madara theme-based sites.
- * 
+ *
  * Common pattern:
  * - WordPress with Madara manga/novel theme
  * - Book page: /novel-name/
  * - Chapters loaded via AJAX POST to /ajax/chapters/
  * - Search: /?s=query&post_type=wp-manga
- * - Uses data attributes for lazy loading images (data-src)
- * 
- * Used by:
- * - BoxNovel.com
- * - NovelMultiverse.com
- * - WuxiaWorld.site
- * - And 8+ other sites from lightnovel-crawler
+ * - Uses data-src for lazy-loading images
+ *
+ * Used by: BoxNovel, NovelMultiverse, WuxiaWorld.site, etc.
  */
 abstract class BaseMadaraScraper(
     networkClient: NetworkClient
@@ -43,13 +40,13 @@ abstract class BaseMadaraScraper(
     override val selectCatalogItemCover: String = "img[data-src]"
     override val selectPaginationLastPage: String = "div.nav-previous.float-left"
 
-    // Search selectors (Madara uses different structure for search results)
+    // Search selectors
     override val selectSearchItems: String = ".c-tabs-item__content"
     override val selectSearchItemTitle: String = ".post-title h3 a"
     override val selectSearchItemUrl: String = ".post-title h3 a"
     override val selectSearchItemCover: String = "img[data-src]"
 
-    // Madara-specific settings
+    // Configuration
     protected open val catalogPath: String = "novel"
     protected open val catalogOrderBy: String = "alphabet"
     protected open val useAjaxChapterLoading: Boolean = true
@@ -57,98 +54,91 @@ abstract class BaseMadaraScraper(
 
     override fun buildCatalogUrl(index: Int): String {
         val page = index + 1
-        return baseUrl.toUrlBuilderSafe()
-            .addPath(catalogPath)
+        return baseUrl.toUriBuilderSafe()
+            .appendPaths(catalogPath)
             .apply {
-                if (page > 1) addPath("page", page.toString())
-                add("m_orderby", catalogOrderBy)
-            }.toString()
+                if (page > 1) appendPaths("page", page.toString())
+                appendQuery("m_orderby", catalogOrderBy)
+            }
+            .toString()
     }
 
-    override fun buildSearchUrl(index: Int, input: String): String {
+    override fun buildSearchUrl(index: Int, query: String): String {
         val page = index + 1
-        return baseUrl.toUrlBuilderSafe()
+        return baseUrl.toUriBuilderSafe()
             .apply {
-                if (page > 1) addPath("page", page.toString())
-                add("s", input)
-                add("post_type", "wp-manga")
-                add("op", "")
-                add("author", "")
-                add("artist", "")
-                add("release", "")
-                add("adult", "")
-            }.toString()
+                if (page > 1) appendPaths("page", page.toString())
+                appendQuery("s", query)
+                appendQuery("post_type", "wp-manga")
+                appendQuery("op", "")
+                appendQuery("author", "")
+                appendQuery("artist", "")
+                appendQuery("release", "")
+                appendQuery("adult", "")
+            }
+            .toString()
     }
 
-    override suspend fun fetchChapterList(bookUrl: String): List<ChapterResult> {
-        return if (useAjaxChapterLoading) {
+    override suspend fun fetchChapterList(bookUrl: String): List<ChapterResult> =
+        if (useAjaxChapterLoading) {
             fetchChapterListViaAjax(bookUrl)
         } else {
             super.fetchChapterList(bookUrl)
         }
-    }
 
-    protected open suspend fun fetchChapterListViaAjax(bookUrl: String): List<ChapterResult> = 
+    protected open suspend fun fetchChapterListViaAjax(bookUrl: String): List<ChapterResult> =
         withContext(Dispatchers.Default) {
-            // Try primary ajax method
-            val cleanUrl = bookUrl.split("?")[0].trimEnd('/')
-            val ajaxUrl = "$cleanUrl/ajax/chapters/"
-            
             try {
-                val chapters = networkClient.call(postRequest(ajaxUrl))
-                    .toDocument()
+                val cleanUrl = bookUrl.substringBefore("?").trimEnd('/')
+                val ajaxUrl = "$cleanUrl/ajax/chapters/"
+
+                val chapters = networkClient.get(ajaxUrl).toDocument()
                     .select(selectChapterList)
-                    .map { element ->
-                        ChapterResult(
-                            title = element.text(),
-                            url = chapterUrlTransform(element.attr("href"))
-                        )
+                    .mapNotNull { element ->
+                        element.toChapterResult()
                     }
-                
+
                 if (reverseChapterOrder) chapters.reversed() else chapters
-            } catch (e: Exception) {
-                // Try alternate method with manga-chapters-holder
+            } catch (_: Exception) {
                 try {
                     fetchChapterListAlternate(bookUrl)
-                } catch (e2: Exception) {
+                } catch (_: Exception) {
                     super.fetchChapterList(bookUrl)
                 }
             }
         }
 
-    protected open suspend fun fetchChapterListAlternate(bookUrl: String): List<ChapterResult> = 
+    protected open suspend fun fetchChapterListAlternate(bookUrl: String): List<ChapterResult> =
         withContext(Dispatchers.Default) {
             val doc = networkClient.get(bookUrl).toDocument()
-            val mangaId = doc.selectFirst("#manga-chapters-holder[data-id]")?.attr("data-id")
-                ?: throw Exception("Manga ID not found for alternate method")
-            
-            val ajaxUrl = baseUrl.toUrlBuilderSafe()
-                .addPath("wp-admin", "admin-ajax.php")
+            val mangaId = doc.selectFirst("#manga-chapters-holder[data-id]")
+                ?.attr("data-id")
+                ?: throw Exception("Manga ID not found")
+
+            val ajaxUrl = baseUrl.toUriBuilderSafe()
+                .appendPaths("wp-admin", "admin-ajax.php")
                 .toString()
-            
+
             val formBody = FormBody.Builder()
                 .add("action", "manga_get_chapters")
                 .add("manga", mangaId)
                 .build()
-            
-            val chapters = networkClient.call(postRequest(ajaxUrl, body = formBody)).toDocument()
+
+            val chapters = networkClient.get(ajaxUrl, formBody).toDocument()
                 .select(selectChapterList)
-                .map { element ->
-                    ChapterResult(
-                        title = element.text(),
-                        url = chapterUrlTransform(element.attr("href"))
-                    )
+                .mapNotNull { element ->
+                    element.toChapterResult()
                 }
-            
+
             if (reverseChapterOrder) chapters.reversed() else chapters
         }
 
-    override fun isLastPage(doc: org.jsoup.nodes.Document): Boolean {
-        // Madara uses nav-previous to indicate more pages exist
-        // If nav-previous is missing, we're on the last page
-        return when (val nav = doc.selectFirst(selectPaginationLastPage)) {
-            null -> true
-            else -> false
-        }
+    override fun isLastPage(doc: org.jsoup.nodes.Document): Boolean =
+        doc.selectFirst(selectPaginationLastPage) == null
+
+    private fun Element.toChapterResult(): ChapterResult? {
+        val title = text().takeIf { it.isNotEmpty() } ?: return null
+        val url = attr("href").takeIf { it.isNotEmpty() } ?: return null
+        return ChapterResult(title, transformChapterUrl(url))
     }
 }

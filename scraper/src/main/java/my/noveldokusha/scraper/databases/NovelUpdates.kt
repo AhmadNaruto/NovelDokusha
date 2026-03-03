@@ -52,7 +52,7 @@ class NovelUpdates(
                 .map { (genre, id) ->
                     my.noveldokusha.scraper.SearchGenre(
                         id = id,
-                        genreName = genre
+                        displayName = genre
                     )
                 }
                 .let(::Success)
@@ -191,7 +191,7 @@ class NovelUpdates(
 
         val genres = doc
             .select("#seriesgenre a")
-            .map { my.noveldokusha.scraper.SearchGenre(genreName = it.text(), id = it.attr("gid")) }
+            .map { my.noveldokusha.scraper.SearchGenre(displayName = it.text(), id = it.attr("gid")) }
 
         val tags = doc
             .select("#showtags a")

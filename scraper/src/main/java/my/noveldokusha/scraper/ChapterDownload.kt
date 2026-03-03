@@ -1,3 +1,9 @@
 package my.noveldokusha.scraper
 
-data class ChapterDownload(val body: String, val title: String?)
+/**
+ * Represents a chapter ready for download with its content and title.
+ */
+data class ChapterDownload(
+    val content: String,
+    val title: String?
+)

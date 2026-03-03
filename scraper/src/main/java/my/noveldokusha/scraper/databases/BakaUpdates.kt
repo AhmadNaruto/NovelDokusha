@@ -81,7 +81,7 @@ class BakaUpdates(
                 .map { (id, genre) ->
                     SearchGenre(
                         id = id,
-                        genreName = genre
+                        displayName = genre
                     )
                 }
                 .let { Success(it) }
@@ -221,7 +221,7 @@ class BakaUpdates(
             val genres = entry("Genre").select("a")
                 .dropLast(1)
                 .mapNotNull { it.text().ifBlank { null } }
-                .map { SearchGenre(genreName = it, id = it) }
+                .map { SearchGenre(displayName = it, id = it) }
 
             DatabaseInterface.BookData(
                 title = doc.selectFirst(".releasestitle.tabletitle")!!.text().removeNovelTag(),

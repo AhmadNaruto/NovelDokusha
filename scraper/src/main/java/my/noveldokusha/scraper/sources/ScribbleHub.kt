@@ -8,8 +8,9 @@ import my.noveldokusha.core.Response
 import my.noveldokusha.network.NetworkClient
 import my.noveldokusha.network.add
 import my.noveldokusha.network.addPath
-import my.noveldokusha.network.getRequest      // ← Tambahkan
-import my.noveldokusha.network.postPayload     // ← Tambahkan
+import my.noveldokusha.network.call
+import my.noveldokusha.network.getRequest
+import my.noveldokusha.network.postPayload
 import my.noveldokusha.network.toDocument
 import my.noveldokusha.network.toUrlBuilderSafe
 import my.noveldokusha.network.tryConnect
@@ -90,7 +91,7 @@ class ScribbleHub(
                     .header("Accept-Language", "en-US,en;q=0.9")
                     .build()
           
-                networkClient.call(request = request.newBuilder(), followRedirects = false)
+                networkClient.call(request.newBuilder(), followRedirects = false)
                     .toDocument()
                     .select(".toc_w a[href]")
                     .reversed()

@@ -10,6 +10,7 @@ import my.noveldokusha.scraper.domain.ChapterResult
 import my.noveldokusha.network.NetworkClient
 import my.noveldokusha.network.add
 import my.noveldokusha.network.addPath
+import my.noveldokusha.network.call
 import my.noveldokusha.network.getRequest
 import my.noveldokusha.network.toDocument
 import my.noveldokusha.network.toUrlBuilderSafe

@@ -1,57 +1,74 @@
 package my.noveldokusha.scraper
 
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
 
+/**
+ * Utility object for mapping book text and handling image embeddings.
+ */
 object BookTextMapper {
-    // <img yrel="{float}"> {uri} </img>
-    data class ImgEntry(val path: String, val yRel: Float) {
-        /**
-         * Deprecated versions: v0
-         * Current versions: v1
-         */
+
+    /**
+     * Represents an image element with its path and vertical position.
+     * @param path The image source path
+     * @param yRel The vertical position relative to text (0.0-2.0 range typically)
+     */
+    data class ImgEntry(
+        val path: String,
+        val yRel: Float
+    ) {
         companion object {
+            private const val XML_TAG = "img"
+            private const val ATTR_SRC = "src"
+            private const val ATTR_YREL = "yrel"
+            private const val YREL_FORMAT = "%.2f"
 
-            @Suppress("unused")
-            fun fromXMLString(text: String): ImgEntry? {
-                return fromXMLStringV0(text) ?: fromXMLStringV1(text)
-            }
+            /**
+             * Parses an XML string representation of an image entry.
+             * Supports both v0 (deprecated) and v1 (current) formats.
+             */
+            fun fromXmlString(xml: String): ImgEntry? =
+                fromXmlStringV1(xml) ?: fromXmlStringV0(xml)
 
-            private fun fromXMLStringV1(text: String): ImgEntry? {
-                return Jsoup.parse(text).selectFirst("img")?.let {
-                    ImgEntry(
-                        path = it.attr("src") ?: return null,
-                        yRel = it.attr("yrel").toFloatOrNull() ?: return null
-                    )
+            private fun fromXmlStringV1(xml: String): ImgEntry? =
+                Jsoup.parse(xml).selectFirst("$XML_TAG[$ATTR_SRC]")?.let { element ->
+                    val path = element.attr(ATTR_SRC).takeIf { it.isNotEmpty() } ?: return null
+                    val yRel = element.attr(ATTR_YREL).toFloatOrNull() ?: return null
+                    ImgEntry(path, yRel)
+                }
+
+            private fun fromXmlStringV0(xml: String): ImgEntry? {
+                val xmlFormRegex = """^\W*<img .*>.+</img>\W*$""".toRegex()
+                if (!xml.matches(xmlFormRegex)) return null
+
+                return xml.parseXmlDocument()?.selectFirstTag(XML_TAG)?.let { element ->
+                    val path = element.textContent.takeIf { !it.isNullOrEmpty() } ?: return null
+                    val yRel = element.getAttributeValue(ATTR_YREL)?.toFloatOrNull() ?: return null
+                    ImgEntry(path, yRel)
                 }
             }
-
-            private val XMLForm_v0 = """^\W*<img .*>.+</img>\W*$""".toRegex()
-
-            private fun fromXMLStringV0(text: String): ImgEntry? {
-                // Fast discard filter
-
-                if (!text.matches(XMLForm_v0))
-                    return null
-                return parseXMLText(text)?.selectFirstTag("img")?.let {
-                    ImgEntry(
-                        path = it.textContent ?: return null,
-                        yRel = it.getAttributeValue("yrel")?.toFloatOrNull() ?: return null
-                    )
-                }
-            }
         }
 
-        fun toXMLString(): String {
-            return toXMLStringV1()
-        }
-
-        private fun toXMLStringV1(): String {
-            return """<img src="$path" yrel="${"%.2f".format(yRel)}">"""
-        }
-
-        @Suppress("unused")
-        private fun toXMLStringV0(): String {
-            return """<img yrel="${"%.2f".format(yRel)}">$path</img>"""
+        /**
+         * Converts this image entry to XML string format (v1).
+         */
+        fun toXmlString(): String = buildString {
+            append("<$XML_TAG $ATTR_SRC=\"$path\" $ATTR_YREL=\"${YREL_FORMAT.format(yRel)}\">")
         }
     }
 }
+
+// Extension functions for XML parsing
+internal fun String.parseXmlDocument() = reader().use { reader ->
+    runCatching {
+        javax.xml.parsers.DocumentBuilderFactory.newInstance()
+            .newDocumentBuilder()
+            .parse(org.xml.sax.InputSource(reader))
+    }.getOrNull()
+}
+
+internal fun org.w3c.dom.Document.selectFirstTag(tag: String) =
+    getElementsByTagName(tag).item(0)
+
+internal fun org.w3c.dom.Node.getAttributeValue(attribute: String) =
+    attributes?.getNamedItem(attribute)?.textContent

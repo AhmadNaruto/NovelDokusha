@@ -10,6 +10,7 @@ import my.noveldokusha.network.interceptors.UserAgentInterceptor
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import timber.log.Timber
@@ -18,12 +19,36 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Interface for making HTTP requests.
+ */
 interface NetworkClient {
-    suspend fun call(request: Request.Builder, followRedirects: Boolean = false): Response
+    /**
+     * Executes an HTTP request.
+     * @param request The request builder.
+     * @param followRedirects Whether to follow redirects. Defaults to false.
+     */
+    suspend fun execute(request: Request.Builder, followRedirects: Boolean = false): Response
+
+    /**
+     * Executes a GET request to the specified URL.
+     */
     suspend fun get(url: String): Response
+
+    /**
+     * Executes a GET request to the specified URL builder.
+     */
     suspend fun get(url: Uri.Builder): Response
+
+    /**
+     * Executes a POST request to the specified URL with the given body.
+     */
+    suspend fun get(url: String, body: RequestBody): Response
 }
 
+/**
+ * Default implementation of [NetworkClient] using OkHttp.
+ */
 @Singleton
 class ScraperNetworkClient @Inject constructor(
     @ApplicationContext private val appContext: Context,
@@ -31,21 +56,21 @@ class ScraperNetworkClient @Inject constructor(
 ) : NetworkClient {
 
     private val cacheDir = File(appContext.cacheDir, "network_cache")
-    private val cacheSize = 5L * 1024 * 1024
+    private val cacheSize = 5L * 1024 * 1024 // 5 MB
 
     private val cookieJar = ScraperCookieJar()
 
-    private val okhttpLoggingInterceptor = HttpLoggingInterceptor {
-        Timber.v(it)
+    private val loggingInterceptor = HttpLoggingInterceptor { message ->
+        Timber.v(message)
     }.apply {
         level = HttpLoggingInterceptor.Level.HEADERS
     }
 
-    val client = OkHttpClient.Builder()
-        .let {
+    private val baseClient = OkHttpClient.Builder()
+        .apply {
             if (appInternalState.isDebugMode) {
-                it.addInterceptor(okhttpLoggingInterceptor)
-            } else it
+                addInterceptor(loggingInterceptor)
+            }
         }
         .addInterceptor(UserAgentInterceptor())
         .addInterceptor(DecodeResponseInterceptor())
@@ -56,16 +81,20 @@ class ScraperNetworkClient @Inject constructor(
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
 
-    private val clientWithRedirects = client
-        .newBuilder()
+    private val clientWithRedirects = baseClient.newBuilder()
         .followRedirects(true)
         .followSslRedirects(true)
         .build()
 
-    override suspend fun call(request: Request.Builder, followRedirects: Boolean): Response {
-        return if (followRedirects) clientWithRedirects.call(request) else client.call(request)
+    override suspend fun execute(request: Request.Builder, followRedirects: Boolean): Response {
+        val client = if (followRedirects) clientWithRedirects else baseClient
+        return client.executeRequest(request)
     }
 
-    override suspend fun get(url: String) = call(getRequest(url))
-    override suspend fun get(url: Uri.Builder) = call(getRequest(url.toString()))
+    override suspend fun get(url: String): Response = execute(getRequest(url))
+
+    override suspend fun get(url: Uri.Builder): Response = execute(getRequest(url.toString()))
+
+    override suspend fun get(url: String, body: RequestBody): Response =
+        execute(postRequest(url, body = body))
 }

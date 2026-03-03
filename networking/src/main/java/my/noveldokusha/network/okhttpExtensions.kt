@@ -17,6 +17,10 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
+/**
+ * Suspends and awaits the completion of an OkHttp [Call], returning the [Response].
+ * Executes on [Dispatchers.IO] by default.
+ */
 private suspend fun Call.await(): Response = withContext(Dispatchers.IO) {
     suspendCoroutine { continuation ->
         enqueue(object : Callback {
@@ -31,12 +35,24 @@ private suspend fun Call.await(): Response = withContext(Dispatchers.IO) {
     }
 }
 
-suspend fun OkHttpClient.call(builder: Request.Builder) = newCall(builder.build()).await()
+/**
+ * Executes an HTTP request using the [OkHttpClient] and returns the [Response].
+ */
+suspend fun OkHttpClient.executeRequest(builder: Request.Builder): Response =
+    newCall(builder.build()).await()
 
+/**
+ * Parses the response body as an HTML [Document].
+ */
 fun Response.toDocument(): Document {
-    return Jsoup.parse(body.string())
+    val html = body.string()
+    val baseUrl = request.url.toString()
+    return Jsoup.parse(html, baseUrl)
 }
 
+/**
+ * Parses the response body as an HTML [Document] with the specified charset.
+ */
 fun Response.toDocument(charset: String): Document {
     val bytes = body.bytes()
     val html = String(bytes, Charset.forName(charset))
@@ -44,6 +60,9 @@ fun Response.toDocument(charset: String): Document {
     return Jsoup.parse(html, baseUrl)
 }
 
+/**
+ * Parses the response body as a JSON [JsonElement].
+ */
 fun Response.toJson(): JsonElement {
     return JsonParser.parseString(body.string())
 }
