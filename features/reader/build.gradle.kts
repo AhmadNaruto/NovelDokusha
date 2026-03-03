@@ -17,12 +17,10 @@ dependencies {
     implementation(projects.data)
     implementation(projects.navigation)
     implementation(projects.tooling.localDatabase)
-    implementation(projects.tooling.textToSpeech)
     implementation(projects.tooling.textTranslator.domain)
     implementation(projects.tooling.algorithms)
 
     implementation(libs.material)
-    implementation(libs.androidx.media)
     implementation(libs.compose.landscapist.glide)
     implementation(libs.compose.androidx.material.icons.extended)
     implementation(libs.androidx.lifecycle.livedata.ktx)

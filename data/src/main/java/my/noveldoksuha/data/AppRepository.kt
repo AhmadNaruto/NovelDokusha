@@ -6,8 +6,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.withContext
 import my.noveldokusha.core.AppFileResolver
-import my.noveldokusha.core.Response
-import my.noveldokusha.core.isContentUri
 import my.noveldokusha.feature.local_database.AppDatabase
 import my.noveldokusha.feature.local_database.tables.Book
 import my.noveldokusha.feature.local_database.tables.Chapter
@@ -22,22 +20,13 @@ class AppRepository @Inject constructor(
     val bookChapters: BookChaptersRepository,
     val chapterBody: ChapterBodyRepository,
     private val appFileResolver: AppFileResolver,
-    private val epubImporterRepository: EpubImporterRepository
 ) {
     val settings = Settings()
     val eventDataRestored = MutableSharedFlow<Unit>()
 
     suspend fun toggleBookmark(bookUrl: String, bookTitle: String): Boolean {
         val realUrl = appFileResolver.getLocalIfContentType(bookUrl, bookFolderName = bookTitle)
-        return if (bookUrl.isContentUri && libraryBooks.get(realUrl) == null) {
-            epubImporterRepository.importEpubFromContentUri(
-                contentUri = bookUrl,
-                bookTitle = bookTitle,
-                addToLibrary = true
-            ) is Response.Success
-        } else {
-            libraryBooks.toggleBookmark(bookUrl = realUrl, bookTitle = bookTitle)
-        }
+        return libraryBooks.toggleBookmark(bookUrl = realUrl, bookTitle = bookTitle)
     }
 
     suspend fun getDatabaseSizeBytes() = withContext(Dispatchers.IO) {

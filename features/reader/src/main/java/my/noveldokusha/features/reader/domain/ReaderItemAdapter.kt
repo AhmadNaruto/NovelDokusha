@@ -16,7 +16,6 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import my.noveldokusha.core.AppFileResolver
 import my.noveldokusha.core.utils.inflater
-import my.noveldokusha.features.reader.features.TextSynthesis
 import my.noveldokusha.reader.R
 import my.noveldokusha.reader.databinding.ActivityReaderListItemBodyBinding
 import my.noveldokusha.reader.databinding.ActivityReaderListItemDividerBinding
@@ -29,13 +28,11 @@ import my.noveldokusha.reader.databinding.ActivityReaderListItemSpecialTitleBind
 import my.noveldokusha.reader.databinding.ActivityReaderListItemTitleBinding
 import my.noveldokusha.reader.databinding.ActivityReaderListItemTranslateAttributionBinding
 import my.noveldokusha.reader.databinding.ActivityReaderListItemTranslatingBinding
-import my.noveldokusha.text_to_speech.Utterance
 
 internal class ReaderItemAdapter(
     private val ctx: Context,
     list: List<ReaderItem>,
     private val bookUrl: String,
-    private val currentSpeakerActiveItem: () -> TextSynthesis,
     private val currentTextSelectability: () -> Boolean,
     private val currentFontSize: () -> Float,
     private val currentTypeface: () -> Typeface,
@@ -138,7 +135,6 @@ internal class ReaderItemAdapter(
         }
 
         bind.body.updateTextSelectability()
-        bind.root.background = getItemReadingStateBackground(item)
         val paragraph = item.textToDisplay + "\n"
         bind.body.text = paragraph
         bind.body.textSize = currentFontSize()
@@ -303,24 +299,9 @@ internal class ReaderItemAdapter(
         }
 
         bind.title.updateTextSelectability()
-        bind.root.background = getItemReadingStateBackground(item)
         bind.title.text = item.textToDisplay
         bind.title.typeface = currentTypefaceBold()
         return bind.root
-    }
-
-    private val currentReadingAloudDrawable by lazy {
-        AppCompatResources.getDrawable(
-            context,
-            R.drawable.translucent_current_reading_text_background
-        )
-    }
-
-    private val currentReadingAloudLoadingDrawable by lazy {
-        AppCompatResources.getDrawable(
-            context,
-            R.drawable.translucent_current_reading_loading_text_background
-        )
     }
 
     private fun TextView.updateTextSelectability() {
@@ -328,21 +309,6 @@ internal class ReaderItemAdapter(
         setTextIsSelectable(selectableText)
         if (selectableText) {
             setTextSelectionAwareClick { onClick() }
-        }
-    }
-
-    private fun getItemReadingStateBackground(item: ReaderItem): Drawable? {
-        val textSynthesis = currentSpeakerActiveItem()
-        val isReadingItem = item is ReaderItem.Position &&
-                textSynthesis.itemPos.chapterIndex == item.chapterIndex &&
-                textSynthesis.itemPos.chapterItemPosition == item.chapterItemPosition
-
-        if (!isReadingItem) return null
-
-        return when (textSynthesis.playState) {
-            Utterance.PlayState.PLAYING -> currentReadingAloudDrawable
-            Utterance.PlayState.LOADING -> currentReadingAloudLoadingDrawable
-            Utterance.PlayState.FINISHED -> null
         }
     }
 

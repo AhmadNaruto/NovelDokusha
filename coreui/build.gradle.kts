@@ -30,7 +30,6 @@ dependencies {
     implementation(libs.compose.material3.android)
     implementation(libs.compose.accompanist.systemuicontroller)
     implementation(libs.compose.accompanist.swiperefresh)
-    implementation(libs.compose.accompanist.insets)
     implementation(libs.compose.accompanist.pager)
     implementation(libs.compose.accompanist.pager.indicators)
     implementation(libs.compose.landscapist.glide)

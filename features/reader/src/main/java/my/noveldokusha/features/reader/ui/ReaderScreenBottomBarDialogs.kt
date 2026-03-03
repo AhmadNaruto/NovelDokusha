@@ -13,7 +13,6 @@ import my.noveldoksuha.coreui.theme.Themes
 import my.noveldokusha.features.reader.ui.settingDialogs.MoreSettingDialog
 import my.noveldokusha.features.reader.ui.settingDialogs.StyleSettingDialog
 import my.noveldokusha.features.reader.ui.settingDialogs.TranslatorSettingDialog
-import my.noveldokusha.features.reader.ui.settingDialogs.VoiceReaderSettingDialog
 
 @Composable
 internal fun ReaderScreenBottomBarDialogs(
@@ -36,9 +35,6 @@ internal fun ReaderScreenBottomBarDialogs(
                 when (target) {
                     ReaderScreenState.Settings.Type.LiveTranslation -> TranslatorSettingDialog(
                         state = settings.liveTranslation
-                    )
-                    ReaderScreenState.Settings.Type.TextToSpeech -> VoiceReaderSettingDialog(
-                        state = settings.textToSpeech
                     )
                     ReaderScreenState.Settings.Type.Style -> {
                         StyleSettingDialog(

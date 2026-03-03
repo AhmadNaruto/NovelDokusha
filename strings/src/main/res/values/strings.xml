@@ -38,12 +38,8 @@
     <string name="open_in_browser">Open in browser</string>
     <string name="sources">Sources</string>
     <string name="search_for_sources">Search for sources</string>
-    <string name="import_epub">Import EPUB</string>
     <string name="failed_get_file">Failed to get the file</string>
-    <string name="local_book_nothing_to_update">Local book, nothing to update</string>
-    <string name="failed_to_import_epub">Failed to import epub</string>
     <string name="image">image</string>
-    <string name="importing_epub">Importing epub</string>
     <string name="no_results_found">No results found</string>
     <string name="updating_library_notice">Updating library</string>
     <string name="search_by_title">Search by title</string>
@@ -52,7 +48,6 @@
     <string name="images_total_size">Images total size:</string>
     <string name="follow_system">Follow system</string>
     <string name="sources_languages">Sources languages</string>
-    <string name="epub_added_to_library">Epub added to library</string>
     <string name="invalid_chapter">Invalid chapter</string>
     <string name="filter">Filter</string>
     <string name="read">Read</string>
@@ -177,7 +172,6 @@
     <string name="notification_channel_name_new_chapters">New chapters</string>
     <string name="notification_channel_name_failed_updates">Failed updates</string>
     <string name="notification_channel_name_backup">Backup</string>
-    <string name="notification_channel_name_import_epub">Import EPUB</string>
     <string name="notification_channel_name_restore_backup">Restore backup</string>
     <string name="notification_channel_name_app_updates_checker">Updates checker</string>
     <string name="new_app_version_available">New app version available</string>

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import my.noveldoksuha.coreui.R
 
+@Suppress("DEPRECATION")
 @Composable
 fun ErrorView(
     error: String,
@@ -34,7 +34,7 @@ fun ErrorView(
     @Composable
     fun Modifier.click(onClick: () -> Unit) = clickable(
         interactionSource = remember { MutableInteractionSource() },
-        indication = rememberRipple(color = MaterialTheme.colorScheme.onError),
+        indication = null,
         onClick = onClick
     )
 

@@ -38,12 +38,8 @@
     <string name="open_in_browser">Abrir no navegador</string>
     <string name="sources">Fontes</string>
 	<string name="search_for_sources">Pesquisar fontes</string>
-    <string name="import_epub">Importar EPUB</string>
 	<string name="failed_get_file">Falha ao obter o arquivo</string>
-	<string name="local_book_nothing_to_update">Livro local, nada para atualizar</string>
-    <string name="failed_to_import_epub">Falha ao importar epub</string>
 	<string name="image">imagem</string>
-	<string name="importing_epub">Importando epub</string>
 	<string name="no_results_found">Nenhum resultado encontrado</string>
     <string name="updating_library_notice">Atualizando biblioteca</string>
 	<string name="search_by_title">Pesquisar por título</string>
@@ -52,7 +48,6 @@
 	<string name="images_total_size">Tamanho total das imagens:</string>
 	<string name="follow_system">Seguir sistema</string>
 	<string name="sources_languages">Idiomas das fontes</string>
-    <string name="epub_added_to_library">Epub adicionado à biblioteca</string>
 	<string name="invalid_chapter">Capítulo inválido</string>
     <string name="filter">Filtro</string>
     <string name="read">Lido</string>

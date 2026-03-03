@@ -68,7 +68,6 @@ import my.noveldoksuha.coreui.theme.colorApp
 import my.noveldoksuha.coreui.theme.isAtTop
 import my.noveldoksuha.coreui.theme.textPadding
 import my.noveldokusha.chapterslist.R
-import my.noveldokusha.core.isLocalUri
 import my.noveldokusha.feature.local_database.ChapterWithContext
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -177,11 +176,8 @@ internal fun ChaptersScreen(
                                     expanded = showDropDown,
                                     onDismissRequest = { showDropDown = false }) {
                                     ChaptersDropDown(
-                                        isLocalSource = state.isLocalSource.value,
                                         openInBrowser = {
-                                            if (!state.book.value.url.isLocalUri) {
-                                                onOpenInBrowser(state.book.value.url)
-                                            }
+                                            onOpenInBrowser(state.book.value.url)
                                         },
                                         onSearchBookInDatabase = onSearchBookInDatabase,
                                         onResumeReading = onResumeReading,
@@ -274,19 +270,17 @@ internal fun ChaptersScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
 
-                        if (!state.isLocalSource.value) {
-                            IconButton(onClick = onSelectedDeleteDownloads) {
-                                Icon(
-                                    Icons.Outlined.Delete,
-                                    stringResource(id = R.string.remove_selected_chapters_downloads)
-                                )
-                            }
-                            IconButton(onClick = onSelectedDownload) {
-                                Icon(
-                                    Icons.Outlined.CloudDownload,
-                                    stringResource(id = R.string.download_selected_chapters)
-                                )
-                            }
+                        IconButton(onClick = onSelectedDeleteDownloads) {
+                            Icon(
+                                Icons.Outlined.Delete,
+                                stringResource(id = R.string.remove_selected_chapters_downloads)
+                            )
+                        }
+                        IconButton(onClick = onSelectedDownload) {
+                            Icon(
+                                Icons.Outlined.CloudDownload,
+                                stringResource(id = R.string.download_selected_chapters)
+                            )
                         }
                         if (areSelectedChaptersRead) {
                             IconButton(onClick = onSelectedSetUnread) {

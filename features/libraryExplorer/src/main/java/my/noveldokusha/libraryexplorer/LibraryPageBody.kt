@@ -23,7 +23,6 @@ import my.noveldoksuha.coreui.components.BookImageButtonView
 import my.noveldoksuha.coreui.modifiers.bounceOnPressed
 import my.noveldoksuha.coreui.theme.ColorAccent
 import my.noveldoksuha.coreui.theme.ImageBorderShape
-import my.noveldokusha.core.isLocalUri
 import my.noveldokusha.core.rememberResolvedBookImagePath
 import my.noveldokusha.feature.local_database.BookWithContext
 
@@ -69,16 +68,6 @@ internal fun LibraryPageBody(
                             .padding(4.dp)
                     )
                 }
-
-                if (it.book.url.isLocalUri) Text(
-                    text = stringResource(R.string.local),
-                    color = Color.White,
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(8.dp)
-                        .background(ColorAccent, ImageBorderShape)
-                        .padding(4.dp)
-                )
             }
         }
     }

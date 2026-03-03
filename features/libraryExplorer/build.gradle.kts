@@ -16,7 +16,6 @@ dependencies {
     implementation(projects.navigation)
     implementation(projects.tooling.localDatabase)
     implementation(projects.tooling.textTranslator.domain)
-    implementation(projects.tooling.epubImporter)
 
     implementation(libs.androidx.workmanager)
 
@@ -26,7 +25,6 @@ dependencies {
     implementation(libs.compose.androidx.constraintlayout)
     implementation(libs.compose.androidx.material.icons.extended)
     implementation(libs.compose.accompanist.systemuicontroller)
-    implementation(libs.compose.accompanist.insets)
     implementation(libs.compose.accompanist.pager)
     implementation(libs.compose.accompanist.pager.indicators)
     implementation(libs.compose.landscapist.glide)

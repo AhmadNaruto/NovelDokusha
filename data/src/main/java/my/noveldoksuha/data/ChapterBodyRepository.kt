@@ -1,7 +1,6 @@
 package my.noveldoksuha.data
 
 import my.noveldokusha.core.Response
-import my.noveldokusha.core.isLocalUri
 import my.noveldokusha.core.map
 import my.noveldokusha.feature.local_database.AppDatabase
 import my.noveldokusha.feature.local_database.DAOs.ChapterBodyDao
@@ -35,17 +34,6 @@ class ChapterBodyRepository @Inject constructor(
     suspend fun fetchBody(urlChapter: String, tryCache: Boolean = true): Response<String> {
         if (tryCache) chapterBodyDao.get(urlChapter)?.let {
             return@fetchBody Response.Success(it.body)
-        }
-
-        if (urlChapter.isLocalUri) {
-            return Response.Error(
-                """
-                Unable to load chapter from url:
-                $urlChapter
-                
-                Source is local but chapter content missing.
-            """.trimIndent(), Exception()
-            )
         }
 
         return downloaderRepository.bookChapter(urlChapter)

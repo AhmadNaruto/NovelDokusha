@@ -7,7 +7,6 @@ import my.noveldokusha.scraper.sources.AT
 import my.noveldokusha.scraper.sources.BacaLightnovel
 import my.noveldokusha.scraper.sources.BoxNovel
 import my.noveldokusha.scraper.sources.IndoWebnovel
-import my.noveldokusha.scraper.sources.LocalSource
 import my.noveldokusha.scraper.sources.MeioNovel
 import my.noveldokusha.scraper.sources.MoreNovel
 import my.noveldokusha.scraper.sources.NovelBin
@@ -44,8 +43,7 @@ import javax.inject.Singleton
 
 @Singleton
 class Scraper @Inject constructor(
-    networkClient: NetworkClient,
-    localSource: LocalSource
+    networkClient: NetworkClient
 ) {
     val databasesList = setOf(
         NovelUpdates(networkClient),
@@ -53,7 +51,6 @@ class Scraper @Inject constructor(
     )
 
     val sourcesList = setOf(
-        localSource,
         ReadNovelFull(networkClient),
         RoyalRoad(networkClient),
         my.noveldokusha.scraper.sources.NovelUpdates(networkClient),

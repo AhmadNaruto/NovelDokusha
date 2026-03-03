@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package my.noveldoksuha.coreui.theme
 
 import androidx.compose.foundation.background
@@ -6,7 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -65,7 +66,7 @@ fun Modifier.clickableWithUnboundedIndicator(onClick: () -> Unit) = composed {
     then(
         clickable(
             interactionSource = remember { MutableInteractionSource() },
-            indication = rememberRipple(bounded = false),
+            indication = null,
             onClick = onClick
         )
     )

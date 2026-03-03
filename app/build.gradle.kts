@@ -97,12 +97,8 @@ android {
 dependencies {
 
     implementation(projects.tooling.localDatabase)
-    implementation(projects.tooling.epubParser)
     implementation(projects.tooling.textTranslator.domain)
-    implementation(projects.tooling.textToSpeech)
-    implementation(projects.tooling.epubImporter)
     implementation(projects.tooling.applicationWorkers)
-    implementation(projects.tooling.localSource)
 
     implementation(projects.features.reader)
     implementation(projects.features.chaptersList)
@@ -191,7 +187,6 @@ dependencies {
     implementation(libs.compose.material3.android)
     implementation(libs.compose.accompanist.systemuicontroller)
     implementation(libs.compose.accompanist.swiperefresh)
-    implementation(libs.compose.accompanist.insets)
     implementation(libs.compose.accompanist.pager)
     implementation(libs.compose.accompanist.pager.indicators)
     implementation(libs.compose.landscapist.glide)

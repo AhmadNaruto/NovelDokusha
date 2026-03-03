@@ -2,8 +2,6 @@
 buildscript {
     repositories {
         google()
-        //noinspection JcenterRepositoryObsolete
-        jcenter()
         mavenCentral()
     }
 }
@@ -19,8 +17,9 @@ plugins {
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.dependency.analysis) apply false
     alias(libs.plugins.jetbrains.kotlin.jvm) apply false
+    alias(libs.plugins.kotlin.compose.compiler) apply false
 }
 
 tasks.register("clean", Delete::class) {
-    delete(rootProject.buildDir)
+    delete(rootProject.layout.buildDirectory.get().asFile)
 }

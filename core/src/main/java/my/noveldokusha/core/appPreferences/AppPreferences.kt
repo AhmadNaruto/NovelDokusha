@@ -52,31 +52,6 @@ class AppPreferences @Inject constructor(
     val READER_FONT_FAMILY = object : Preference<String>("READER_FONT_FAMILY") {
         override var value by SharedPreference_String(name, preferences, "serif")
     }
-    val READER_TEXT_TO_SPEECH_VOICE_ID =
-        object : Preference<String>("READER_TEXT_TO_SPEECH_VOICE_ID") {
-            override var value by SharedPreference_String(name, preferences, "")
-        }
-    val READER_TEXT_TO_SPEECH_VOICE_SPEED =
-        object : Preference<Float>("READER_TEXT_TO_SPEECH_VOICE_SPEED") {
-            override var value by SharedPreference_Float(name, preferences, 1f)
-        }
-    val READER_TEXT_TO_SPEECH_VOICE_PITCH =
-        object : Preference<Float>("READER_TEXT_TO_SPEECH_VOICE_PITCH") {
-            override var value by SharedPreference_Float(name, preferences, 1f)
-        }
-
-    val READER_TEXT_TO_SPEECH_SAVED_PREDEFINED_LIST =
-        object : Preference<List<VoicePredefineState>>(
-            "READER_TEXT_TO_SPEECH_SAVED_PREDEFINED_LIST"
-        ) {
-            override var value by SharedPreference_Serializable<List<VoicePredefineState>>(
-                name = name,
-                sharedPreferences = preferences,
-                defaultValue = listOf(),
-                encode = { Json.encodeToString(it) },
-                decode = { Json.decodeFromString(it) }
-            )
-        }
 
     val READER_SELECTABLE_TEXT = object : Preference<Boolean>("READER_SELECTABLE_TEXT") {
         override var value by SharedPreference_Boolean(name, preferences, false)

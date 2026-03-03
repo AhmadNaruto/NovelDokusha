@@ -15,14 +15,12 @@ import kotlinx.coroutines.launch
 import my.noveldoksuha.coreui.BaseViewModel
 import my.noveldoksuha.data.AppRepository
 import my.noveldoksuha.data.DownloaderRepository
-import my.noveldoksuha.data.EpubImporterRepository
 import my.noveldokusha.chapterslist.R
 import my.noveldokusha.core.AppCoroutineScope
 import my.noveldokusha.core.AppFileResolver
 import my.noveldokusha.core.Toasty
 import my.noveldokusha.core.appPreferences.AppPreferences
 import my.noveldokusha.core.isContentUri
-import my.noveldokusha.core.isLocalUri
 import my.noveldokusha.core.utils.StateExtra_String
 import my.noveldokusha.core.utils.toState
 import my.noveldokusha.feature.local_database.ChapterWithContext
@@ -44,7 +42,6 @@ internal class ChaptersViewModel @Inject constructor(
     appFileResolver: AppFileResolver,
     private val downloaderRepository: DownloaderRepository,
     private val chaptersRepository: ChaptersRepository,
-    private val epubImporterRepository: EpubImporterRepository,
     stateHandle: SavedStateHandle,
 ) : BaseViewModel(), ChapterStateBundle {
 
@@ -75,20 +72,11 @@ internal class ChaptersViewModel @Inject constructor(
         isRefreshing = mutableStateOf(false),
         sourceCatalogNameStrRes = mutableStateOf(source?.nameStrId),
         settingChapterSort = appPreferences.CHAPTERS_SORT_ASCENDING.state(viewModelScope),
-        isLocalSource = mutableStateOf(bookUrl.isLocalUri),
-        isRefreshable = mutableStateOf(rawBookUrl.isContentUri || !bookUrl.isLocalUri)
+        isRefreshable = mutableStateOf(rawBookUrl.isContentUri)
     )
 
     init {
-        appScope.launch {
-            if (rawBookUrl.isContentUri && appRepository.libraryBooks.get(bookUrl) == null) {
-                importUriContent()
-            }
-        }
-
         viewModelScope.launch {
-            if (state.isLocalSource.value) return@launch
-
             if (!appRepository.bookChapters.hasChapters(bookUrl))
                 updateChaptersList()
 
@@ -116,23 +104,13 @@ internal class ChaptersViewModel @Inject constructor(
     }
 
     fun onPullRefresh() {
-        if (!state.isRefreshable.value) {
-            toasty.show(R.string.local_book_nothing_to_update)
-            state.isRefreshing.value = false
-            return
-        }
         toasty.show(R.string.updating_book_info)
-        if (rawBookUrl.isContentUri) {
-            importUriContent()
-        } else if (!state.isLocalSource.value) {
-            updateCover()
-            updateDescription()
-            updateChaptersList()
-        }
+        updateCover()
+        updateDescription()
+        updateChaptersList()
     }
 
     private fun updateCover() = viewModelScope.launch {
-        if (state.isLocalSource.value || book.value.coverImageUrl?.isLocalUri == true) return@launch
         downloaderRepository.bookCoverImageUrl(bookUrl = bookUrl).onSuccess {
             if (it == null) return@onSuccess
             appRepository.libraryBooks.updateCover(bookUrl, it)
@@ -140,27 +118,9 @@ internal class ChaptersViewModel @Inject constructor(
     }
 
     private fun updateDescription() = viewModelScope.launch {
-        if (state.isLocalSource.value) return@launch
         downloaderRepository.bookDescription(bookUrl = bookUrl).onSuccess {
             if (it == null) return@onSuccess
             appRepository.libraryBooks.updateDescription(bookUrl, it)
-        }
-    }
-
-    private fun importUriContent() {
-        if (loadChaptersJob?.isActive == true) return
-        loadChaptersJob = appScope.launch {
-            state.error.value = ""
-            state.isRefreshing.value = true
-            val isInLibrary = appRepository.libraryBooks.existInLibrary(bookUrl)
-            epubImporterRepository.importEpubFromContentUri(
-                contentUri = rawBookUrl,
-                bookTitle = bookTitle,
-                addToLibrary = isInLibrary
-            ).onError {
-                state.error.value = it.message
-            }
-            state.isRefreshing.value = false
         }
     }
 
@@ -229,16 +189,14 @@ internal class ChaptersViewModel @Inject constructor(
     }
 
     fun downloadSelected() {
-        if (state.isLocalSource.value) return
-        
         // Get selected chapter URLs
         val selectedUrls = state.selectedChaptersUrl.keys.toSet()
-        
+
         // Filter and sort chapters by position to ensure sequential download
         val sortedChapters = state.chapters
             .filter { selectedUrls.contains(it.chapter.url) }
             .sortedBy { it.chapter.position }
-        
+
         // Download chapters sequentially in order
         appScope.launch(Dispatchers.Default) {
             sortedChapters.forEach { chapter ->
@@ -248,7 +206,6 @@ internal class ChaptersViewModel @Inject constructor(
     }
 
     fun deleteDownloadsSelected() {
-        if (state.isLocalSource.value) return
         val list = state.selectedChaptersUrl.toList()
         appScope.launch(Dispatchers.Default) {
             appRepository.chapterBody.removeRows(list.map { it.first })
@@ -300,7 +257,6 @@ internal class ChaptersViewModel @Inject constructor(
     }
 
     fun onChapterDownload(chapter: ChapterWithContext) {
-        if (state.isLocalSource.value) return
         appScope.launch {
             appRepository.chapterBody.fetchBody(chapter.chapter.url)
         }

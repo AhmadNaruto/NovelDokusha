@@ -18,7 +18,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.outlined.ColorLens
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.Translate
@@ -59,12 +58,8 @@ import my.noveldoksuha.coreui.theme.colorApp
 import my.noveldoksuha.coreui.theme.rememberMutableStateOf
 import my.noveldokusha.features.reader.domain.ReaderItem
 import my.noveldokusha.features.reader.features.LiveTranslationSettingData
-import my.noveldokusha.features.reader.features.TextSynthesis
-import my.noveldokusha.features.reader.features.TextToSpeechSettingData
 import my.noveldokusha.features.reader.ui.ReaderScreenState.Settings.Type
 import my.noveldokusha.reader.R
-import my.noveldokusha.text_to_speech.Utterance
-import my.noveldokusha.text_to_speech.VoiceData
 import my.noveldokusha.text_translator.domain.TranslationModelState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -199,13 +194,6 @@ internal fun ReaderScreen(
                         )
                         SettingIconItem(
                             currentType = state.settings.selectedSetting.value,
-                            settingType = Type.TextToSpeech,
-                            onClick = toggleOrSet,
-                            icon = Icons.Filled.RecordVoiceOver,
-                            textId = R.string.voice_reader,
-                        )
-                        SettingIconItem(
-                            currentType = state.settings.selectedSetting.value,
                             settingType = Type.Style,
                             onClick = toggleOrSet,
                             icon = Icons.Outlined.ColorLens,
@@ -279,50 +267,6 @@ private fun ViewsPreview(
         , onRedoTranslation = {}
     )
 
-    val textToSpeechSettingData = TextToSpeechSettingData(
-        isPlaying = rememberMutableStateOf(false),
-        isLoadingChapter = rememberMutableStateOf(false),
-        voicePitch = rememberMutableStateOf(1f),
-        voiceSpeed = rememberMutableStateOf(1f),
-        availableVoices = remember { mutableStateListOf() },
-        activeVoice = remember {
-            mutableStateOf(
-                VoiceData(
-                    id = "",
-                    language = "",
-                    quality = 100,
-                    needsInternet = true
-                )
-            )
-        },
-        currentActiveItemState = remember {
-            mutableStateOf(
-                TextSynthesis(
-                    playState = Utterance.PlayState.PLAYING,
-                    itemPos = ReaderItem.Title(
-                        chapterUrl = "",
-                        chapterIndex = 0,
-                        chapterItemPosition = 1,
-                        text = ""
-                    )
-                )
-            )
-        },
-        isThereActiveItem = rememberMutableStateOf(true),
-        setPlaying = {},
-        playPreviousItem = {},
-        playPreviousChapter = {},
-        playNextItem = {},
-        playNextChapter = {},
-        setVoiceId = {},
-        playFirstVisibleItem = {},
-        scrollToActiveItem = {},
-        setVoiceSpeed = {},
-        setVoicePitch = {},
-        setCustomSavedVoices = {},
-        customSavedVoices = rememberMutableStateOf(value = listOf())
-    )
-
     val style = ReaderScreenState.Settings.StyleSettingsData(
         followSystem = remember { mutableStateOf(true) },
         currentTheme = remember { mutableStateOf(Themes.DARK) },
@@ -345,7 +289,6 @@ private fun ViewsPreview(
                     settings = ReaderScreenState.Settings(
                         isTextSelectable = remember { mutableStateOf(false) },
                         keepScreenOn = remember { mutableStateOf(false) },
-                        textToSpeech = textToSpeechSettingData,
                         liveTranslation = liveTranslationSettingData,
                         style = style,
                         selectedSetting = remember { mutableStateOf(data.selectedSetting) },
@@ -377,7 +320,6 @@ private class PreviewDataProvider : PreviewParameterProvider<PreviewDataProvider
     override val values = sequenceOf(
         Data(selectedSetting = Type.None),
         Data(selectedSetting = Type.LiveTranslation),
-        Data(selectedSetting = Type.TextToSpeech),
         Data(selectedSetting = Type.Style),
         Data(selectedSetting = Type.More),
     )

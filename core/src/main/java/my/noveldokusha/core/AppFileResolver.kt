@@ -24,42 +24,37 @@ class AppFileResolver @Inject constructor(
     val folderBooks = File(context.filesDir, "books")
 
     fun getLocalIfContentType(url: String, bookFolderName: String) =
-        if (url.isContentUri) bookFolderName.addLocalUriPrefix else url
+        if (url.isContentUri) bookFolderName else url
 
     fun getLocalBookCoverPath(): String = Paths.get(
         COVER_PATH_RELATIVE_TO_BOOK
-    ).toString().addLocalUriPrefix
+    ).toString()
 
     fun getLocalBookChapterPath(bookFolderName: String, chapterName: String): String = Paths.get(
-        bookFolderName.removeLocalUriPrefix,
-        chapterName.removeLocalUriPrefix
-    ).toString().addLocalUriPrefix
+        bookFolderName,
+        chapterName
+    ).toString()
 
     fun getLocalBookPath(bookFolderName: String): String = Paths.get(
-        bookFolderName.removeLocalUriPrefix
-    ).toString().addLocalUriPrefix
+        bookFolderName
+    ).toString()
 
     fun getStorageBookCoverImageFile(bookFolderName: String): File = Paths.get(
         folderBooks.absolutePath,
-        bookFolderName.removeLocalUriPrefix,
+        bookFolderName,
         COVER_PATH_RELATIVE_TO_BOOK
     ).toFile()
 
     fun getStorageBookImageFile(bookFolderName: String, imagePath: String): File {
-        val localBookFolderName = when {
-            imagePath.isLocalUri -> getLocalBookFolderName(bookFolderName)
-            else -> bookFolderName
-        }
         return Paths.get(
             folderBooks.absolutePath,
-            localBookFolderName.removeLocalUriPrefix,
-            imagePath.removeLocalUriPrefix
+            bookFolderName,
+            imagePath
         ).toFile()
     }
 
     fun getLocalBookFolderName(bookUrl: String): String = when {
         bookUrl.isHttpsUrl -> Base64.getEncoder().encodeToString(bookUrl.encodeToByteArray())
-        bookUrl.isLocalUri -> bookUrl.removeLocalUriPrefix
         else -> bookUrl
     }
 

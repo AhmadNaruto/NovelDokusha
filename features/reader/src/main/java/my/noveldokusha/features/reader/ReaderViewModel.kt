@@ -64,7 +64,6 @@ internal class ReaderViewModel @Inject constructor(
             selectedSetting = mutableStateOf(ReaderScreenState.Settings.Type.None),
             isTextSelectable = appPreferences.READER_SELECTABLE_TEXT.state(viewModelScope),
             keepScreenOn = appPreferences.READER_KEEP_SCREEN_ON.state(viewModelScope),
-            textToSpeech = readerSession.readerTextToSpeech.state,
             liveTranslation = readerSession.readerLiveTranslation.state,
             fullScreen = appPreferences.READER_FULL_SCREEN.state(viewModelScope),
             style = ReaderScreenState.Settings.StyleSettingsData(
@@ -96,21 +95,14 @@ internal class ReaderViewModel @Inject constructor(
 
     val items = readerSession.items
     val chaptersLoader = readerSession.readerChaptersLoader
-    val readerSpeaker = readerSession.readerTextToSpeech
     var readingCurrentChapter by Delegates.observable(readerSession.currentChapter) { _, _, new ->
         readerSession.currentChapter = new
     }
     val onTranslatorChanged = readerSession.readerLiveTranslation.onTranslatorChanged
-    val ttsScrolledToTheTop = readerSession.readerTextToSpeech.scrolledToTheTop
-    val ttsScrolledToTheBottom = readerSession.readerTextToSpeech.scrolledToTheBottom
 
     fun onCloseManually() {
         readerManager.close()
     }
-
-
-    fun startSpeaker(itemIndex: Int) =
-        readerSession.startSpeaker(itemIndex = itemIndex)
 
     fun reloadReader() {
         val currentChapter = readingCurrentChapter.copy()

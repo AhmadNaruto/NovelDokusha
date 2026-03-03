@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import my.noveldoksuha.data.AppRepository
 import my.noveldoksuha.data.DownloaderRepository
-import my.noveldokusha.core.isLocalUri
 import my.noveldokusha.feature.local_database.tables.Book
 import my.noveldokusha.feature.local_database.tables.Chapter
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -39,7 +38,6 @@ class LibraryUpdatesInteractions @Inject constructor(
     ): Unit = withContext(Dispatchers.Default) {
         appRepository.libraryBooks.getAllInLibrary()
             .filter { it.completed == completedOnes }
-            .filter { !it.url.isLocalUri }
             .also { list ->
                 countingUpdating.update {
                     CountingUpdating(

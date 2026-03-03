@@ -3,6 +3,7 @@ package my.noveldoksuha.convention.plugin
 import com.android.build.api.dsl.CommonExtension
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 internal fun Project.configureAndroid(
@@ -44,13 +45,13 @@ internal fun Project.configureAndroid(
 private fun Project.configureKotlin() {
     // Use withType to workaround https://youtrack.jetbrains.com/issue/KT-55947
     tasks.withType<KotlinCompile>().configureEach {
-        kotlinOptions {
+        compilerOptions {
             // Set JVM target to 17
-            jvmTarget = appConfig.JAVA_VERSION_STRING
-            freeCompilerArgs = freeCompilerArgs + listOf(
-                "-opt-in=kotlin.RequiresOptIn",
-                "-Xjvm-default=all-compatibility",
-            )
+            jvmTarget.set(JvmTarget.JVM_17)
+            freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
+            freeCompilerArgs.add("-Xjvm-default=all-compatibility")
+            // Allow deprecated APIs (e.g., rememberRipple) during migration
+            allWarningsAsErrors.set(false)
         }
     }
 }

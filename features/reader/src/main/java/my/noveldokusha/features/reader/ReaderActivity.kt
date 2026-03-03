@@ -52,7 +52,6 @@ import my.noveldokusha.features.reader.ui.ReaderViewHandlersActions
 import my.noveldokusha.navigation.NavigationRoutes
 import my.noveldokusha.reader.R
 import my.noveldokusha.reader.databinding.ActivityReaderBinding
-import my.noveldokusha.text_to_speech.Utterance
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -100,7 +99,6 @@ class ReaderActivity : BaseActivity() {
                 currentFontSize = { appPreferences.READER_FONT_SIZE.value },
                 currentTypeface = { fontsLoader.getTypeFaceNORMAL(appPreferences.READER_FONT_FAMILY.value) },
                 currentTypefaceBold = { fontsLoader.getTypeFaceBOLD(appPreferences.READER_FONT_FAMILY.value) },
-                currentSpeakerActiveItem = { viewModel.readerSpeaker.currentTextPlaying.value },
                 onChapterStartVisible = viewModel::markChapterStartAsSeen,
                 onChapterEndVisible = viewModel::markChapterEndAsSeen,
                 onReloadReader = viewModel::reloadReader,
@@ -177,62 +175,6 @@ class ReaderActivity : BaseActivity() {
                 val displacement = viewAdapter.listView.count - oldSize
                 viewBind.listView.setSelectionFromTop(position + displacement, top)
             }
-        }
-
-        viewModel.ttsScrolledToTheTop.asLiveData().observe(this) {
-            viewAdapter.listView.notifyDataSetChanged()
-            if (viewAdapter.listView.count < 1) {
-                return@observe
-            }
-            viewBind.listView.smoothScrollToPositionFromTop(
-                1,
-                300.dpToPx(this),
-                250
-            )
-        }
-
-        viewModel.ttsScrolledToTheBottom.asLiveData().observe(this) {
-            viewAdapter.listView.notifyDataSetChanged()
-            if (viewAdapter.listView.count < 2) {
-                return@observe
-            }
-            viewBind.listView.smoothScrollToPositionFromTop(
-                viewAdapter.listView.count - 2,
-                300.dpToPx(this),
-                250
-            )
-        }
-
-        viewModel.readerSpeaker.currentReaderItem
-            .filter { it.playState == Utterance.PlayState.PLAYING || it.playState == Utterance.PlayState.LOADING }
-            .asLiveData().observe(this) {
-                scrollToReadingPositionOptional(
-                    chapterIndex = it.itemPos.chapterIndex,
-                    chapterItemPosition = it.itemPos.chapterItemPosition,
-                )
-            }
-
-        viewModel.readerSpeaker.scrollToReaderItem.asLiveData().observe(this) {
-            if (it !is ReaderItem.Position) return@observe
-            scrollToReadingPositionForced(
-                chapterIndex = it.chapterIndex,
-                chapterItemPosition = it.chapterItemPosition,
-            )
-        }
-
-        viewModel.readerSpeaker.scrollToChapterTop.asLiveData()
-            .observe(this) { chapterIndex ->
-                scrollToReadingPositionForced(
-                    chapterIndex = chapterIndex,
-                    chapterItemPosition = 0,
-                )
-            }
-
-        viewModel.readerSpeaker.startReadingFromFirstVisibleItem.asLiveData().observe(this) {
-            val firstPosition = viewBind.listView.firstVisiblePosition
-            viewModel.startSpeaker(
-                itemIndex = viewAdapter.listView.getFirstVisibleItemIndexGivenPosition(firstPosition)
-            )
         }
 
         // Notify manually text font changed for list view
@@ -340,30 +282,17 @@ class ReaderActivity : BaseActivity() {
             fadeInTextLiveData.postValue(true)
         }
 
-
-
-        when {
-            // Use case: user opens app from media control intent
-            viewModel.introScrollToSpeaker -> {
-                viewModel.introScrollToSpeaker = false
-                val itemPos = viewModel.readerSpeaker.currentTextPlaying.value.itemPos
-                scrollToReadingPositionImmediately(
-                    chapterIndex = itemPos.chapterIndex,
-                    chapterItemPosition = itemPos.chapterItemPosition,
-                )
-            }
-            // Use case: user opens reader on the same book, on the same chapter url (session is maintained)
-            readerViewHandlersActions.introScrollToCurrentChapter -> {
-                readerViewHandlersActions.introScrollToCurrentChapter = false
-                val chapterState = viewModel.readingCurrentChapter
-                val chapterStats =
-                    viewModel.chaptersLoader.chaptersStats[chapterState.chapterUrl] ?: return
-                initialScrollToChapterItemPosition(
-                    chapterIndex = chapterStats.orderedChaptersIndex,
-                    chapterItemPosition = chapterState.chapterItemPosition,
-                    offset = chapterState.offset
-                )
-            }
+        // Use case: user opens reader on the same book, on the same chapter url (session is maintained)
+        if (readerViewHandlersActions.introScrollToCurrentChapter) {
+            readerViewHandlersActions.introScrollToCurrentChapter = false
+            val chapterState = viewModel.readingCurrentChapter
+            val chapterStats =
+                viewModel.chaptersLoader.chaptersStats[chapterState.chapterUrl] ?: return
+            initialScrollToChapterItemPosition(
+                chapterIndex = chapterStats.orderedChaptersIndex,
+                chapterItemPosition = chapterState.chapterItemPosition,
+                offset = chapterState.offset
+            )
         }
     }
 
@@ -411,67 +340,6 @@ class ReaderActivity : BaseActivity() {
                     else -> controller.hide(WindowInsetsCompat.Type.statusBars())
                 }
             }
-    }
-
-    private fun scrollToReadingPositionOptional(chapterIndex: Int, chapterItemPosition: Int) {
-        // If user already scrolling ignore
-        if (listIsScrolling) {
-            viewAdapter.listView.notifyDataSetChanged()
-            return
-        }
-        // Search for the item being read otherwise do nothing
-        val firstIndex = viewBind.listView.firstVisiblePosition
-        val lastIndex = viewBind.listView.lastVisiblePosition
-        for (index in firstIndex..lastIndex) {
-            val item = viewAdapter.listView.getItem(index)
-            if (
-                item.chapterIndex == chapterIndex &&
-                item is ReaderItem.Position &&
-                item.chapterItemPosition == chapterItemPosition
-            ) {
-                val viewIndex = index - viewBind.listView.firstVisiblePosition
-                val currentOffsetPx =
-                    viewBind.listView.getChildAt(viewIndex).run { top - paddingTop }
-                val newOffsetPx = 200.dpToPx(this@ReaderActivity)
-                viewAdapter.listView.notifyDataSetChanged()
-                // Scroll if item below new scroll position
-                if (currentOffsetPx > newOffsetPx) {
-                    viewBind.listView.smoothScrollToPositionFromTop(index, newOffsetPx, 1000)
-                }
-                return
-            }
-        }
-        viewAdapter.listView.notifyDataSetChanged()
-    }
-
-    private fun scrollToReadingPositionForced(chapterIndex: Int, chapterItemPosition: Int) {
-        // Search for the item being read otherwise do nothing
-        val itemIndex = indexOfReaderItem(
-            list = viewModel.items,
-            chapterIndex = chapterIndex,
-            chapterItemPosition = chapterItemPosition
-        )
-        if (itemIndex == -1) return
-        val itemPosition = viewAdapter.listView.fromIndexToPosition(itemIndex)
-        val newOffsetPx = 200.dpToPx(this@ReaderActivity)
-        viewAdapter.listView.notifyDataSetChanged()
-        viewBind.listView.smoothScrollToPositionFromTop(itemPosition, newOffsetPx, 500)
-        viewAdapter.listView.notifyDataSetChanged()
-    }
-
-    private fun scrollToReadingPositionImmediately(chapterIndex: Int, chapterItemPosition: Int) {
-        // Search for the item being read otherwise do nothing
-        val itemIndex = indexOfReaderItem(
-            list = viewModel.items,
-            chapterIndex = chapterIndex,
-            chapterItemPosition = chapterItemPosition
-        )
-        if (itemIndex == -1) return
-        val itemPosition = viewAdapter.listView.fromIndexToPosition(itemIndex)
-        val newOffsetPx = 200.dpToPx(this@ReaderActivity)
-        viewAdapter.listView.notifyDataSetChanged()
-        viewBind.listView.setSelectionFromTop(itemPosition, newOffsetPx)
-        viewAdapter.listView.notifyDataSetChanged()
     }
 
     private fun updateReadingState() {
