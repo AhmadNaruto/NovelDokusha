@@ -31,8 +31,6 @@ dependencies {
     implementation(libs.compose.accompanist.systemuicontroller)
     implementation(libs.compose.accompanist.pager)
     implementation(libs.compose.accompanist.pager.indicators)
-    implementation(libs.compose.landscapist.glide)
     implementation(libs.compose.coil)
     implementation(libs.compose.lazyColumnScrollbar)
-
 }

@@ -31,12 +31,13 @@ fun ImageView(
     val model by remember(imageModel, error) {
         derivedStateOf {
             when (imageModel) {
-                is String -> imageModel.ifBlank { error }
-                null -> run { error }
+                is String -> imageModel.ifBlank { error.toString() }
+                null -> error.toString()
                 else -> imageModel
             }
         }
     }
+
     if (LocalInspectionMode.current) {
         val res = when (val modelCopy = model) {
             is Int -> modelCopy
@@ -51,32 +52,22 @@ fun ImageView(
         )
     } else {
         val context by rememberUpdatedState(LocalContext.current)
-        val imageRequest by remember(model) {
-            derivedStateOf {
-                ImageRequest
-                    .Builder(context)
-                    .data(model)
-                    .crossfade(fadeInDurationMillis)
-                    .build()
-            }
-        }
-        val imageErrorRequest by remember(error) {
-            derivedStateOf {
-                ImageRequest
-                    .Builder(context)
-                    .data(error)
-                    .crossfade(fadeInDurationMillis)
-                    .build()
-            }
-        }
+        val errorModel by rememberUpdatedState(error)
+
         AsyncImage(
-            model = imageRequest,
+            model = ImageRequest.Builder(context)
+                .data(model)
+                .crossfade(fadeInDurationMillis)
+                .build(),
             contentDescription = contentDescription,
             contentScale = contentScale,
             modifier = modifier,
             colorFilter = colorFilter,
             error = rememberAsyncImagePainter(
-                model = imageErrorRequest,
+                model = ImageRequest.Builder(context)
+                    .data(errorModel)
+                    .crossfade(fadeInDurationMillis)
+                    .build(),
                 contentScale = contentScale
             )
         )

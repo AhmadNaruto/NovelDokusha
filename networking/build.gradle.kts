@@ -15,7 +15,9 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.okhttp.interceptor.brotli)
     implementation(libs.okhttp.interceptor.logging)
-    implementation(libs.okhttp.glideIntegration)
+
+    // Coil
+    implementation(libs.compose.coil)
 
     // Logging
     implementation(libs.timber)

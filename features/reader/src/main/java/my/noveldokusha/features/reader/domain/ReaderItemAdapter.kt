@@ -2,7 +2,6 @@ package my.noveldokusha.features.reader.domain
 
 import android.content.Context
 import android.graphics.Typeface
-import android.graphics.drawable.Drawable
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -12,8 +11,8 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.doOnNextLayout
 import androidx.core.view.updateLayoutParams
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import coil.ImageLoader
+import coil.request.ImageRequest
 import my.noveldokusha.core.AppFileResolver
 import my.noveldokusha.core.utils.inflater
 import my.noveldokusha.reader.R
@@ -168,18 +167,20 @@ internal class ReaderItemAdapter(
             imagePath = item.image.path
         )
 
-        // Glide uses current imageView size to load the bitmap best optimized for it, but current
-        // size corresponds to the last image (different size) and the view layout only updates to
-        // the new values on next redraw. Execute Glide loading call in the next (parent) layout
-        // update to let it get the correct values.
-        // (Avoids getting "blurry" images)
+        // Load image using Coil with proper view sizing
         bind.imageContainer.doOnNextLayout {
-            Glide.with(ctx)
-                .load(imageModel)
-                .fitCenter()
-                .error(R.drawable.ic_baseline_error_outline_24)
-                .transition(DrawableTransitionOptions.withCrossFade())
-                .into(bind.image)
+            val request = ImageRequest.Builder(ctx)
+                .data(imageModel)
+                .crossfade(true)
+                .listener(
+                    onError = { _, _ ->
+                        bind.image.setImageResource(R.drawable.ic_baseline_error_outline_24)
+                    }
+                )
+                .target(bind.image)
+                .build()
+
+            ImageLoader(ctx).enqueue(request)
         }
 
         when (item.location) {

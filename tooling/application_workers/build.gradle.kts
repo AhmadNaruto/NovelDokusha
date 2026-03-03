@@ -21,5 +21,7 @@ dependencies {
 
     implementation(libs.compose.androidx.activity)
     implementation(libs.compose.material3.android)
-    implementation(libs.compose.landscapist.glide)
+
+    // Coil
+    implementation(libs.compose.coil)
 }

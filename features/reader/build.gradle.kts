@@ -21,8 +21,10 @@ dependencies {
     implementation(projects.tooling.algorithms)
 
     implementation(libs.material)
-    implementation(libs.compose.landscapist.glide)
     implementation(libs.compose.androidx.material.icons.extended)
+
+    // Coil
+    implementation(libs.compose.coil)
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.compose.androidx.activity)
     implementation(libs.compose.androidx.lifecycle.viewmodel)

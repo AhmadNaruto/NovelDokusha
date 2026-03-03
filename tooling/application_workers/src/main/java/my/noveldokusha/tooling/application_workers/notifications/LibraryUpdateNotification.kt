@@ -6,12 +6,11 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
 import androidx.core.app.NotificationCompat
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
+import coil.ImageLoader
+import coil.request.ImageRequest
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.runBlocking
 import my.noveldoksuha.coreui.states.NotificationsCenter
 import my.noveldoksuha.coreui.states.text
 import my.noveldoksuha.coreui.states.title
@@ -136,37 +135,39 @@ internal class LibraryUpdateNotification @Inject constructor(
 
         if (book.coverImageUrl.isBlank()) return
 
-        Glide.with(context)
-            .asBitmap()
-            .load(book.coverImageUrl)
-            .into(
-                object : CustomTarget<Bitmap>() {
-                    override fun onResourceReady(
-                        resource: Bitmap,
-                        transition: Transition<in Bitmap>?
-                    ) {
-                        notificationsCenter.showNotification(
-                            notificationId = book.url.hashCode(),
-                            channelId = notifyNewChapters.channelId,
-                            channelName = notifyNewChapters.channelName,
-                            importance = NotificationManager.IMPORTANCE_DEFAULT
-                        ) {
-                            title = book.title
-                            val newText = newChapters.take(3).joinToString("\n") {
-                                "· " + it.title
-                            }
-                            text = newText + if (newChapters.size > 3) "\n..." else ""
-                            setStyle(NotificationCompat.BigTextStyle().bigText(text))
-                            setGroup(book.url)
-                            setSmallIcon(R.drawable.new_chapters_icon_notification)
-                            setLargeIcon(resource)
-                            setContentIntent(intentStack)
-                            setAutoCancel(true)
-                        }
-                    }
+        // Load cover image using Coil
+        val imageLoader = ImageLoader.Builder(context)
+            .crossfade(false)
+            .build()
 
-                    override fun onLoadCleared(placeholder: Drawable?) = Unit
-                })
+        val request = ImageRequest.Builder(context)
+            .data(book.coverImageUrl)
+            .build()
+
+        runBlocking {
+            val result = imageLoader.execute(request)
+            val bitmap = (result.drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap
+                ?: return@runBlocking
+
+            notificationsCenter.showNotification(
+                notificationId = book.url.hashCode(),
+                channelId = notifyNewChapters.channelId,
+                channelName = notifyNewChapters.channelName,
+                importance = NotificationManager.IMPORTANCE_DEFAULT
+            ) {
+                title = book.title
+                val newText = newChapters.take(3).joinToString("\n") {
+                    "· " + it.title
+                }
+                text = newText + if (newChapters.size > 3) "\n..." else ""
+                setStyle(NotificationCompat.BigTextStyle().bigText(text))
+                setGroup(book.url)
+                setSmallIcon(R.drawable.new_chapters_icon_notification)
+                setLargeIcon(bitmap)
+                setContentIntent(intentStack)
+                setAutoCancel(true)
+            }
+        }
     }
 
     fun showFailedNotification(

@@ -7,7 +7,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.bumptech.glide.Glide
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -108,7 +107,7 @@ internal class SettingsViewModel @Inject constructor(
             ?.filter { it.name !in libraryFolders }
             ?.forEach { it.deleteRecursively() }
         updateImagesFolderSize()
-        Glide.get(context).clearDiskCache()
+        // Coil cache is automatically managed, no need to manually clear
     }
 
     fun onFollowSystemChange(follow: Boolean) {

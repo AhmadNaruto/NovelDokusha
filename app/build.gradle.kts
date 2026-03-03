@@ -189,7 +189,6 @@ dependencies {
     implementation(libs.compose.accompanist.swiperefresh)
     implementation(libs.compose.accompanist.pager)
     implementation(libs.compose.accompanist.pager.indicators)
-    implementation(libs.compose.landscapist.glide)
     implementation(libs.compose.coil)
     implementation(libs.compose.lazyColumnScrollbar)
 
@@ -197,7 +196,6 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.okhttp.interceptor.brotli)
     implementation(libs.okhttp.interceptor.logging)
-    implementation(libs.okhttp.glideIntegration)
 
     // Logging
     implementation(libs.timber)

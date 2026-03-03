@@ -30,7 +30,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import my.noveldoksuha.coreui.components.AnimatedTransition
-import my.noveldoksuha.coreui.components.ImageViewGlide
+import my.noveldoksuha.coreui.components.ImageView
 import my.noveldoksuha.coreui.theme.ColorAccent
 import my.noveldoksuha.coreui.theme.InternalTheme
 import my.noveldoksuha.coreui.theme.PreviewThemes
@@ -82,7 +82,7 @@ internal fun CatalogList(
                     )
                 },
                 leadingContent = {
-                    ImageViewGlide(
+                    ImageView(
                         imageModel = it.iconUrl,
                         modifier = Modifier.size(28.dp),
                         error = R.drawable.default_icon
@@ -132,7 +132,7 @@ internal fun CatalogList(
                             modifier = Modifier.size(28.dp),
                         )
                     } else {
-                        ImageViewGlide(
+                        ImageView(
                             imageModel = icon,
                             modifier = Modifier.size(28.dp),
                             error = R.drawable.default_icon
