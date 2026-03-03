@@ -25,7 +25,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: 8.2
+          gradle-version: 8.13
 
       - name: Setup APK signing
         run: |
@@ -37,7 +37,7 @@ jobs:
 
       - name: Build app
         run: |
-          ./gradlew assembleRelease -PlocalPropertiesFilePath=custom.properties 2>&1 | tee build.log
+          ./gradlew assembleRelease -PlocalPropertiesFilePath=custom.properties --no-daemon 2>&1 | tee build.log
 
       - name: Upload build log (on failure)
         uses: actions/upload-artifact@v4
@@ -59,10 +59,13 @@ jobs:
           path: build.log
           retention-days: 30
 
-      - name: Create Release
+      - name: Upload Release APK
         uses: softprops/action-gh-release@v2
+        if: success()
         with:
           name: NovelDokusha v${{ env.APP_VERSION }}
           tag_name: v${{ env.APP_VERSION }}
+          generate_release_notes: true
           files: |
             ${{ env.APK_FILE_PATH_foss }}
+            ${{ env.APK_FILE_PATH }}
