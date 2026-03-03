@@ -53,6 +53,8 @@ interface DatabaseInterface {
 
     /**
      * Searches books by title.
+     * @param index Zero-based page index.
+     * @param query Search query string.
      */
     suspend fun searchByTitle(index: Int, query: String): Response<PagedList<BookResult>>
 

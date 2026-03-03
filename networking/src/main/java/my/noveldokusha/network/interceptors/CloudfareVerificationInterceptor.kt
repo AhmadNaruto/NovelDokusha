@@ -155,8 +155,10 @@ internal class CloudFareVerificationInterceptor(
             .filter { !it.startsWith("$CF_CLEARANCE_COOKIE=") }
             .joinToString("; ")
 
-        cookieManager.setCookie(urlString, filteredCookies)
-        cookieManager.flush()
+        if (filteredCookies.isNotEmpty()) {
+            cookieManager.setCookie(urlString, filteredCookies)
+            cookieManager.flush()
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")

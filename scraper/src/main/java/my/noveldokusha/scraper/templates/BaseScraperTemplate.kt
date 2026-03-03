@@ -258,10 +258,8 @@ abstract class BaseScraperTemplate(
         private fun String.ensureAbsolute(baseUrl: String): String =
             when {
                 startsWith("http", ignoreCase = true) -> this
-                startsWith("/") -> baseUrl.toUriBuilderSafe()
-                    .apply { appendPath(removePrefix("/")) }
-                    .toString()
-                else -> baseUrl.toUriBuilderSafe().appendPath(this).toString()
+                startsWith("/") -> baseUrl.trimEnd('/') + this
+                else -> baseUrl.trimEnd('/') + "/" + this
             }
     }
 }

@@ -39,10 +39,10 @@ class ChapterBodyRepository @Inject constructor(
         return downloaderRepository.bookChapter(urlChapter)
             .map {
                 insertWithTitle(
-                    chapterBody = ChapterBody(url = urlChapter, body = it.body),
+                    chapterBody = ChapterBody(url = urlChapter, body = it.content),
                     title = it.title
                 )
-                it.body
+                it.content
             }
     }
 }

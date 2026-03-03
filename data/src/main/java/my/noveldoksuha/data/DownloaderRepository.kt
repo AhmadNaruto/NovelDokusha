@@ -5,6 +5,7 @@ import kotlinx.coroutines.withContext
 import my.noveldokusha.core.Response
 import my.noveldokusha.core.map
 import my.noveldokusha.network.NetworkClient
+import my.noveldokusha.network.call
 import my.noveldokusha.network.toDocument
 import my.noveldokusha.scraper.Scraper
 import my.noveldokusha.scraper.TextExtractor
@@ -88,7 +89,7 @@ class DownloaderRepository @Inject constructor(
             scraper.getCompatibleSource(realUrl)?.also { source ->
                 val doc = networkClient.get(source.transformChapterUrl(realUrl)).toDocument(source.charset)
                 val data = my.noveldokusha.scraper.ChapterDownload(
-                    body = source.getChapterText(doc) ?: return@also,
+                    content = source.getChapterText(doc) ?: return@also,
                     title = source.getChapterTitle(doc)
                 )
                 return@tryFlatConnect Response.Success(data)
@@ -142,7 +143,7 @@ private fun heuristicChapterExtraction(url: String, document: Document): my.nove
     Readability4JExtended(url, document).parse().also { article ->
         val content = article.articleContent ?: return null
         return my.noveldokusha.scraper.ChapterDownload(
-            body = TextExtractor.get(content),
+            content = TextExtractor.extract(content),
             title = article.title
         )
     }

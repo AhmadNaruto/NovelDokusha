@@ -53,7 +53,7 @@ object BookTextMapper {
          * Converts this image entry to XML string format (v1).
          */
         fun toXmlString(): String = buildString {
-            append("<$XML_TAG $ATTR_SRC=\"$path\" $ATTR_YREL=\"${YREL_FORMAT.format(yRel)}\">")
+            append("<$XML_TAG $ATTR_SRC=\"$path\" $ATTR_YREL=\"${YREL_FORMAT.format(yRel)}/>")
         }
     }
 }

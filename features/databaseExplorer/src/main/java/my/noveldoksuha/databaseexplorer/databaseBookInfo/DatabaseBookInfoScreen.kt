@@ -129,7 +129,7 @@ private fun PreviewView() {
                 tags = (1..20).map { "tag $it" },
                 genres = (1..8).map {
                     SearchGenre(
-                        genreName = "genre $it",
+                        displayName = "genre $it",
                         id = "$it"
                     )
                 },

@@ -54,7 +54,7 @@ fun Uri.Builder.add(vararg query: Pair<String, Any>) = appendQueries(*query)
 /**
  * @deprecated Use [ifTrue] instead
  */
-@Deprecated("Use ifTrue", ReplaceWith("ifTrue(case) { action(this) }"))
+@Deprecated("Use ifTrue", ReplaceWith("ifTrue(case) { action() }"))
 fun Uri.Builder.ifCase(case: Boolean, action: Uri.Builder.() -> Uri.Builder) =
     ifTrue(case) { action(this) }
 
@@ -75,7 +75,7 @@ suspend fun OkHttpClient.call(builder: Request.Builder) = executeRequest(builder
  * Builds a POST request with a form body constructed from the given scope.
  * @deprecated Use [postRequest] with scope instead
  */
-@Deprecated("Use postRequest with scope", ReplaceWith("postRequest(url, headers, cacheControl, scope)"))
+@Deprecated("Use postRequest with scope")
 inline fun Request.Builder.postPayload(scope: FormBody.Builder.() -> Unit): Request.Builder {
     val builder = FormBody.Builder()
     scope(builder)

@@ -49,7 +49,7 @@ private suspend fun <T> Response<T>.handleNetworkErrors(extraErrorInfo: String =
                     appendLine("Unknown error.")
                     appendLine()
                     appendLine("Info:")
-                    appendLine(extraErrorInfo.ifBlank { "No Info" })
+                    appendLine(extraErrorInfo.ifBlank { "No info" })
                     appendLine()
                     appendLine("Message:")
                     appendLine(error.exception.message)

@@ -43,7 +43,7 @@ interface NetworkClient {
     /**
      * Executes a POST request to the specified URL with the given body.
      */
-    suspend fun get(url: String, body: RequestBody): Response
+    suspend fun post(url: String, body: RequestBody): Response
 }
 
 /**
@@ -66,7 +66,7 @@ class ScraperNetworkClient @Inject constructor(
         level = HttpLoggingInterceptor.Level.HEADERS
     }
 
-    private val baseClient = OkHttpClient.Builder()
+    val baseClient: OkHttpClient = OkHttpClient.Builder()
         .apply {
             if (appInternalState.isDebugMode) {
                 addInterceptor(loggingInterceptor)
@@ -80,6 +80,12 @@ class ScraperNetworkClient @Inject constructor(
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
+
+    /**
+     * @deprecated Use [baseClient] instead
+     */
+    @Deprecated("Use baseClient", ReplaceWith("baseClient"))
+    val client: OkHttpClient get() = baseClient
 
     private val clientWithRedirects = baseClient.newBuilder()
         .followRedirects(true)
@@ -95,6 +101,6 @@ class ScraperNetworkClient @Inject constructor(
 
     override suspend fun get(url: Uri.Builder): Response = execute(getRequest(url.toString()))
 
-    override suspend fun get(url: String, body: RequestBody): Response =
+    override suspend fun post(url: String, body: RequestBody): Response =
         execute(postRequest(url, body = body))
 }

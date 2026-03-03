@@ -64,10 +64,7 @@ object TextExtractor {
                 child.isLineBreak() -> LINE_BREAK
                 child.isHorizontalRule() -> PARAGRAPH_SEPARATOR
                 child.isImage() -> embedImage(child)
-                child is TextNode -> {
-                    val text = child.text().trim()
-                    text.takeIf { it.isNotEmpty() }?.plus(PARAGRAPH_SEPARATOR).orEmpty()
-                }
+                child is TextNode -> child.text().trim()
                 else -> extractNodeText(child)
             }
         }

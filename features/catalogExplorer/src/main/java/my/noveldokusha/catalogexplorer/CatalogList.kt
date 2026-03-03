@@ -160,7 +160,7 @@ internal fun CatalogList(
                                             Text(text = stringResource(R.string.close))
                                         }
                                     },
-                                    text = { catalog.ScreenConfig() },
+                                    text = { catalog.SettingsScreen() },
                                     icon = {
                                         Icon(
                                             Icons.Filled.Settings,

@@ -58,6 +58,12 @@ class Scraper @Inject constructor(
     )
 
     /**
+     * @deprecated Use [databases] instead
+     */
+    @Deprecated("Use databases", ReplaceWith("databases"))
+    val databasesList: Set<DatabaseInterface> get() = databases
+
+    /**
      * List of all registered sources.
      */
     val sources: Set<SourceInterface> = setOf(
@@ -106,10 +112,22 @@ class Scraper @Inject constructor(
         sources.filterIsInstance<SourceInterface.Catalog>()
 
     /**
+     * @deprecated Use [catalogSources] instead
+     */
+    @Deprecated("Use catalogSources", ReplaceWith("catalogSources"))
+    val sourcesCatalogsList: List<SourceInterface.Catalog> get() = catalogSources
+
+    /**
      * Unique languages available across all catalog sources.
      */
     val catalogLanguages: Set<my.noveldokusha.core.LanguageCode> =
         catalogSources.mapNotNull { it.language }.toSet()
+
+    /**
+     * @deprecated Use [catalogLanguages] instead
+     */
+    @Deprecated("Use catalogLanguages", ReplaceWith("catalogLanguages"))
+    val sourcesCatalogsLanguagesList: Set<my.noveldokusha.core.LanguageCode> get() = catalogLanguages
 
     /**
      * Finds a source that matches the given URL based on its base URL.
@@ -118,10 +136,22 @@ class Scraper @Inject constructor(
         sources.find { url.isCompatibleWith(it.baseUrl) }
 
     /**
+     * @deprecated Use [findSource] instead
+     */
+    @Deprecated("Use findSource", ReplaceWith("findSource(url)"))
+    fun getCompatibleSource(url: String): SourceInterface? = findSource(url)
+
+    /**
      * Finds a catalog source that matches the given URL.
      */
     fun findCatalogSource(url: String): SourceInterface.Catalog? =
         catalogSources.find { url.isCompatibleWith(it.baseUrl) }
+
+    /**
+     * @deprecated Use [findCatalogSource] instead
+     */
+    @Deprecated("Use findCatalogSource", ReplaceWith("findCatalogSource(url)"))
+    fun getCompatibleSourceCatalog(url: String): SourceInterface.Catalog? = findCatalogSource(url)
 
     /**
      * Finds a database that matches the given URL.
@@ -130,11 +160,17 @@ class Scraper @Inject constructor(
         databases.find { url.isCompatibleWith(it.baseUrl) }
 
     /**
+     * @deprecated Use [findDatabase] instead
+     */
+    @Deprecated("Use findDatabase", ReplaceWith("findDatabase(url)"))
+    fun getCompatibleDatabase(url: String): DatabaseInterface? = findDatabase(url)
+
+    /**
      * Checks if a URL is compatible with a base URL.
      */
     private fun String.isCompatibleWith(baseUrl: String): Boolean {
         val normalizedUrl = removeSuffix("/")
         val normalizedBaseUrl = baseUrl.removeSuffix("/")
-        return startsWith("$normalizedBaseUrl/")
+        return normalizedUrl == normalizedBaseUrl || normalizedUrl.startsWith("$normalizedBaseUrl/")
     }
 }

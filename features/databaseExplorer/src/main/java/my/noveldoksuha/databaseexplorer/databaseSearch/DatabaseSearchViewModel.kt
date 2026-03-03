@@ -83,7 +83,7 @@ class DatabaseSearchViewModel @Inject constructor(
                 is SearchInputState.Catalog -> database.getCatalog(index = index)
                 is SearchInputState.BookTitle -> database.searchByTitle(
                     index = index,
-                    input = input.text
+                    query = input.text
                 )
                 is SearchInputState.Filters -> database.searchByFilters(
                     index = index,

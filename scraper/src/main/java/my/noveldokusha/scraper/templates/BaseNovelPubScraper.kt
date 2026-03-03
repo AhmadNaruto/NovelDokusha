@@ -77,10 +77,9 @@ abstract class BaseNovelPubScraper(
         withContext(Dispatchers.Default) {
             try {
                 val chapters = mutableListOf<ChapterResult>()
-                val baseChaptersUrl = bookUrl.toUriBuilderSafe().appendPaths("chapters")
 
                 for (page in 1..maxChapterPages) {
-                    val pageUrl = baseChaptersUrl.appendPaths("page-$page").toString()
+                    val pageUrl = bookUrl.toUriBuilderSafe().appendPaths("chapters", "page-$page").toString()
                     val doc = networkClient.get(pageUrl).toDocument()
                     val pageChapters = doc.select(selectChapterList).mapNotNull { element ->
                         element.toChapterResult()

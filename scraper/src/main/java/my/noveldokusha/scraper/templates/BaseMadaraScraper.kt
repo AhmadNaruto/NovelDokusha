@@ -124,7 +124,7 @@ abstract class BaseMadaraScraper(
                 .add("manga", mangaId)
                 .build()
 
-            val chapters = networkClient.get(ajaxUrl, formBody).toDocument()
+            val chapters = networkClient.post(ajaxUrl, formBody).toDocument()
                 .select(selectChapterList)
                 .mapNotNull { element ->
                     element.toChapterResult()
