@@ -70,7 +70,7 @@ class NovelBin(private val networkClient: NetworkClient) : SourceInterface.Catal
 
     override suspend fun getChapterText(doc: Document): String =
         withContext(Dispatchers.Default) {
-            doc.selectFirst(selectChapterContent)?.let { TextExtractor.get(it)
+            doc.selectFirst(selectChapterContent)?.let { TextExtractor.extract(it)
             } ?: ""
         }
 

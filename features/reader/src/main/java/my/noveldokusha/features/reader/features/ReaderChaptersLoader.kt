@@ -393,7 +393,12 @@ internal class ReaderChaptersLoader(
     private suspend fun loadPreviousChapter() = withContext(Dispatchers.Main.immediate) {
         readerState = ReaderState.LOADING
 
-        val firstItem = items.firstOrNull()!!
+        val firstItem = items.firstOrNull()
+        if (firstItem == null) {
+            // Items list is empty - this shouldn't happen, but handle gracefully
+            readerState = ReaderState.IDLE
+            return@withContext
+        }
         if (firstItem is ReaderItem.BookStart) {
             readerState = ReaderState.IDLE
             return@withContext
@@ -455,7 +460,12 @@ internal class ReaderChaptersLoader(
     private suspend fun loadNextChapter() = withContext(Dispatchers.Main.immediate) {
         readerState = ReaderState.LOADING
 
-        val lastItem = items.lastOrNull()!!
+        val lastItem = items.lastOrNull()
+        if (lastItem == null) {
+            // Items list is empty - this shouldn't happen, but handle gracefully
+            readerState = ReaderState.IDLE
+            return@withContext
+        }
         if (lastItem is ReaderItem.BookEnd) {
             readerState = ReaderState.IDLE
             return@withContext

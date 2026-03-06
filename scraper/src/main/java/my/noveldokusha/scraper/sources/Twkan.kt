@@ -45,7 +45,7 @@ class Twkan(
         doc.selectFirst("#txtcontent0")?.let { content ->
             // Remove ads and scripts
             content.select("script, .txtad").remove()
-            TextExtractor.get(content)
+            TextExtractor.extract(content)
         } ?: ""
     }
 
@@ -68,7 +68,7 @@ class Twkan(
         tryConnect {
             networkClient.get(bookUrl).toDocument()
                 .selectFirst("#tab_info .navtxt p")
-                ?.let { TextExtractor.get(it) }
+                ?.let { TextExtractor.extract(it) }
         }
     }
 

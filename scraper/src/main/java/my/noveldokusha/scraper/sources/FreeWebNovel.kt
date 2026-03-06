@@ -41,7 +41,7 @@ class FreeWebNovel(
                 element.select(".ads").remove()
                 element.select("h4").remove()
                 element.select("sub").remove()
-                TextExtractor.get(element)
+                TextExtractor.extract(element)
             } ?: ""
         }
 
@@ -63,7 +63,7 @@ class FreeWebNovel(
                 networkClient.get(bookUrl)
                     .toDocument()
                     .selectFirst(".m-desc .txt")
-                    ?.let { TextExtractor.get(it) }
+                    ?.let { TextExtractor.extract(it) }
             }
         }
 

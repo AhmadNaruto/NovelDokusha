@@ -107,7 +107,7 @@ class NovelFull(
                 element.select(".ads").remove()
                 element.select("div:contains(novelfull.net)").remove()
                 element.select("p:contains(If you find any errors)").remove()
-                TextExtractor.get(element)
+                TextExtractor.extract(element)
             } ?: ""
         }
 }

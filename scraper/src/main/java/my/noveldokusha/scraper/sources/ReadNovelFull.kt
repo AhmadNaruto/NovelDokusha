@@ -1,5 +1,7 @@
 package my.noveldokusha.scraper.sources
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import my.noveldokusha.core.LanguageCode
 import my.noveldokusha.network.NetworkClient
 import my.noveldokusha.scraper.R
@@ -40,4 +42,18 @@ class ReadNovelFull(
         val lastLi = doc.selectFirst(selectPaginationLastPage)
         return lastLi == null || lastLi.hasClass("disabled")
     }
+
+    override suspend fun getChapterText(doc: Document): String =
+        withContext(Dispatchers.Default) {
+            doc.selectFirst("#chr-content")?.let { element ->
+                // Remove ads and unwanted elements
+                element.select("script").remove()
+                element.select(".ads-holder").remove()
+                element.select(".ads").remove()
+                // Extract text from all paragraph children
+                element.select("p")
+                    .mapNotNull { it.text().takeIf { text -> text.isNotBlank() } }
+                    .joinToString("\n\n")
+            } ?: ""
+        }
 }

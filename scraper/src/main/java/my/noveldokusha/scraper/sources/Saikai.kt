@@ -45,7 +45,7 @@ class Saikai(
         tryConnect {
             networkClient.get(bookUrl).toDocument()
                 .selectFirst("#synopsis-content")
-                ?.let { TextExtractor.get(it) }
+                ?.let { TextExtractor.extract(it) }
         }
     }
 

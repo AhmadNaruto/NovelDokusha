@@ -35,7 +35,7 @@ class MoreNovel(
         withContext(Dispatchers.Default) {
             doc.selectFirst(".reading-content .text-left")?.let {
                 it.select("div").remove()
-                TextExtractor.get(it)
+                TextExtractor.extract(it)
             } ?: ""
         }
 }

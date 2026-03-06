@@ -42,7 +42,7 @@ class ScribbleHub(
             doc.selectFirst("#chp_raw")?.let { element ->
                 element.select("script").remove()
                 element.select("div.modern_chapter_ad").remove()
-                TextExtractor.get(element)
+                TextExtractor.extract(element)
             } ?: ""
         }
 
@@ -62,7 +62,7 @@ class ScribbleHub(
                 networkClient.get(bookUrl)
                     .toDocument()
                     .selectFirst(".wi_fic_desc")
-                    ?.let { TextExtractor.get(it) }
+                    ?.let { TextExtractor.extract(it) }
             }
         }
 

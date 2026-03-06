@@ -29,7 +29,7 @@ class SonicMTL(
             element.select(".body-top-ads").remove()
             element.select(".before-content-ad").remove()
             element.select(".autors-widget").remove()
-            TextExtractor.get(element)
+            TextExtractor.extract(element)
         } ?: ""
     }
 }

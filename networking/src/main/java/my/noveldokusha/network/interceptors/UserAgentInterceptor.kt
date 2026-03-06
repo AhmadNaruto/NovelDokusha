@@ -11,7 +11,7 @@ internal class UserAgentInterceptor : Interceptor {
 
     companion object {
         private const val DEFAULT_USER_AGENT =
-            "Mozilla/5.0 (Linux; U; Android 13; zh-CN; PFDM00 Build/TP1A.220905.001) " +
+            "Mozilla/5.0 (Linux; U; Android 13; en-US; PFDM00 Build/TP1A.220905.001) " +
                 "AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 " +
                 "Chrome/123.0.6312.80 UCBrowser/18.2.6.1452 Mobile Safari/537.36"
     }

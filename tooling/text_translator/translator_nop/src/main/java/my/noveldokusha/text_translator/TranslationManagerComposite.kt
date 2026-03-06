@@ -192,10 +192,11 @@ class TranslationManagerComposite(
     }
 
     /**
-     * Get storage size used by MLKit models
+     * Get storage size used by MLKit models (placeholder - returns 0)
      */
     suspend fun getMLKitStorageSize(): Long {
-        return mlKitManager.getStorageSize()
+        // TODO: Implement proper storage calculation when MLKit API supports it
+        return 0L
     }
 
     /**

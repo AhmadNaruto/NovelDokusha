@@ -52,7 +52,7 @@ class LeYueDu(
             it.select("div.txtinfo").remove()
             it.select("div#txtright").remove()
             it.select("div.baocuo").remove()
-            TextExtractor.get(it)
+            TextExtractor.extract(it)
         } ?: ""
     }
 
@@ -72,7 +72,7 @@ class LeYueDu(
             
             networkClient.get(readUrl).toDocument()
                 .selectFirst("div.newnav div.ellipsis_2")
-                ?.let { TextExtractor.get(it) }
+                ?.let { TextExtractor.extract(it) }
         }
     }
 

@@ -63,7 +63,7 @@ class NovelUpdates(
         tryConnect {
             networkClient.get(bookUrl).toDocument()
                 .selectFirst("#editdescription")
-                ?.let { TextExtractor.get(it) }
+                ?.let { TextExtractor.extract(it) }
         }
     }
 

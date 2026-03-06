@@ -204,7 +204,7 @@ class NovelUpdates(
 
         DatabaseInterface.BookData(
             title = doc.selectFirst(".seriestitlenu")?.text()?.trim() ?: "",
-            description = TextExtractor.get(doc.selectFirst("#editdescription")).trim(),
+            description = TextExtractor.extract(doc.selectFirst("#editdescription")).trim(),
             alternativeTitles = alternativeTitles,
             relatedBooks = relatedBooks,
             similarRecommended = similarRecommended,

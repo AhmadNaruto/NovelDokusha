@@ -3,7 +3,6 @@ package my.noveldokusha.text_translator
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
-import com.google.mlkit.nl.languageid.LanguageIdentification
 import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.Translator
@@ -16,8 +15,6 @@ import my.noveldokusha.core.appPreferences.AppPreferences
 import my.noveldokusha.text_translator.domain.TranslationManager
 import my.noveldokusha.text_translator.domain.TranslationModelState
 import my.noveldokusha.text_translator.domain.TranslatorState
-import java.io.File
-import java.util.Locale
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -44,7 +41,7 @@ class TranslationManagerMLKit(
             "en", "zh", "ja", "ko", "es", "fr", "de", "it", "pt", "ru",
             "ar", "hi", "th", "vi", "id", "tr", "pl", "nl", "sv", "da",
             "fi", "no", "cs", "el", "he", "ro", "hu", "uk", "bg", "hr",
-            "bn", "fa", "gu", "kn", "ml", "mr", "pa", "ta", "te", "ur"
+            "bn", "fa"
         )
 
         addAll(supportedLanguages.map { lang ->
@@ -58,8 +55,6 @@ class TranslationManagerMLKit(
     }
 
     override suspend fun hasModelDownloaded(language: String): TranslationModelState? {
-        // For MLKit, we consider a model "available" if the language is supported
-        // Actual download status is checked during translation
         return models.firstOrNull { it.language == language }
     }
 
@@ -88,7 +83,7 @@ class TranslationManagerMLKit(
                 .setTargetLanguage(targetCode)
                 .build()
 
-            val translator = getOrCreateTranslator(options)
+            val translator = getOrCreateTranslator(options, sourceLanguage, targetLanguage)
 
             suspendCancellableCoroutine<String> { continuation ->
                 translator.translate(text)
@@ -100,9 +95,6 @@ class TranslationManagerMLKit(
                         Log.e(TAG, "MLKit translation failed", e)
                         continuation.resumeWithException(e)
                     }
-                    .addOnCompleteListener {
-                        // Don't close translator - keep in cache for reuse
-                    }
             }
         } catch (e: Exception) {
             Log.e(TAG, "MLKit translation error", e)
@@ -110,75 +102,66 @@ class TranslationManagerMLKit(
         }
     }
 
-    private fun getOrCreateTranslator(options: TranslatorOptions): Translator {
-        val cacheKey = "${options.sourceLanguage}-${options.targetLanguage}"
+    private fun getOrCreateTranslator(
+        options: TranslatorOptions,
+        sourceLanguage: String,
+        targetLanguage: String
+    ): Translator {
+        // Use language pair as cache key
+        val cacheKey = "$sourceLanguage-$targetLanguage"
         return translatorCache.getOrPut(cacheKey) {
             Translation.getClient(options)
         }
     }
 
     override fun downloadModel(language: String) {
-        coroutineScope.backgroundScope.launch {
-            try {
-                val languageCode = getMLKitLanguageCode(language)
-                    ?: throw IllegalArgumentException("Unsupported language: $language")
+        try {
+            val languageCode = getMLKitLanguageCode(language)
+                ?: throw IllegalArgumentException("Unsupported language: $language")
 
-                // Update state to downloading
-                val modelState = models.firstOrNull { it.language == language } ?: return@launch
-                modelState.downloading = true
-                modelState.downloadingFailed = false
+            val modelState = models.firstOrNull {
+                it.language == language && !it.downloading
+            } ?: return
 
-                Log.d(TAG, "Downloading MLKit model for $language")
+            // Update state using mutableStateListOf methods
+            val index = models.indexOf(modelState)
+            if (index != -1) {
+                models[index] = modelState.copy(
+                    downloading = true,
+                    downloadingFailed = false
+                )
 
-                // MLKit automatically downloads model when needed
-                // We simulate download progress
-                kotlinx.coroutines.delay(100)
-                modelState.downloading = false
-                modelState.available = true
+                Log.d(TAG, "Preparing MLKit model for $language")
+
+                // MLKit automatically downloads model when first used
+                models[index] = modelState.copy(
+                    downloading = false,
+                    available = true
+                )
 
                 Log.d(TAG, "MLKit model ready for $language")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error with MLKit model for $language", e)
-                val modelState = models.firstOrNull { it.language == language }
-                modelState?.downloading = false
-                modelState?.downloadingFailed = true
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error with MLKit model for $language", e)
+            val index = models.indexOfFirst { it.language == language }
+            if (index != -1) {
+                val modelState = models[index]
+                models[index] = modelState.copy(
+                    downloading = false,
+                    downloadingFailed = true
+                )
             }
         }
     }
 
     override fun removeModel(language: String) {
-        coroutineScope.ioScope.launch {
-            try {
-                val languageCode = getMLKitLanguageCode(language)
-                    ?: throw IllegalArgumentException("Unsupported language: $language")
-
-                Log.d(TAG, "Removing MLKit model for $language")
-
-                suspendCancellableCoroutine<Unit> { continuation ->
-                    Translation.getClient().deleteModel(languageCode)
-                        .addOnSuccessListener {
-                            Log.d(TAG, "MLKit model removed successfully for $language")
-                            val modelState = models.firstOrNull { it.language == language }
-                            modelState?.available = false
-                            modelState?.downloading = false
-                            modelState?.downloadingFailed = false
-
-                            // Remove from cache
-                            translatorCache.entries.removeAll {
-                                it.value.toString().contains(languageCode)
-                            }
-
-                            continuation.resume(Unit)
-                        }
-                        .addOnFailureListener { e ->
-                            Log.e(TAG, "MLKit model removal failed for $language", e)
-                            continuation.resumeWithException(e)
-                        }
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error removing MLKit model for $language", e)
-            }
+        clearCache()
+        val index = models.indexOfFirst { it.language == language }
+        if (index != -1) {
+            val modelState = models[index]
+            models[index] = modelState.copy(available = false)
         }
+        Log.d(TAG, "MLKit cache cleared for $language")
     }
 
     override suspend fun translateBatch(
@@ -187,19 +170,19 @@ class TranslationManagerMLKit(
         targetLanguage: String
     ): Map<String, String> = withContext(Dispatchers.IO) {
         try {
-            val sourceCode = com.google.mlkit.nl.translate.TranslateLanguage.fromLocale(Locale(sourceLanguage))
+            val sourceCode = getMLKitLanguageCode(sourceLanguage)
                 ?: throw IllegalArgumentException("Unsupported source language: $sourceLanguage")
-            val targetCode = com.google.mlkit.nl.translate.TranslateLanguage.fromLocale(Locale(targetLanguage))
+            val targetCode = getMLKitLanguageCode(targetLanguage)
                 ?: throw IllegalArgumentException("Unsupported target language: $targetLanguage")
 
-            val options = com.google.mlkit.nl.translate.TranslatorOptions.Builder()
+            val options = TranslatorOptions.Builder()
                 .setSourceLanguage(sourceCode)
                 .setTargetLanguage(targetCode)
                 .build()
 
-            val translator = getOrCreateTranslator(options)
+            val translator = getOrCreateTranslator(options, sourceLanguage, targetLanguage)
 
-            // MLKit doesn't support batch translation directly, translate one by one
+            // MLKit doesn't support batch translation, translate one by one
             val resultMap = mutableMapOf<String, String>()
             for (text in texts) {
                 try {
@@ -215,7 +198,6 @@ class TranslationManagerMLKit(
                     resultMap[text] = translated
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to translate text in batch: ${e.message}", e)
-                    // Continue with next text
                 }
             }
 
@@ -237,25 +219,7 @@ class TranslationManagerMLKit(
     }
 
     /**
-     * Get storage size used by MLKit models
-     */
-    suspend fun getStorageSize(): Long = withContext(Dispatchers.IO) {
-        try {
-            val modelsDir = File(context.filesDir, "google_mlkit_translate")
-            if (modelsDir.exists()) {
-                modelsDir.walkTopDown().filter { it.isFile }.map { it.length() }.sum()
-            } else {
-                0L
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error calculating MLKit storage size", e)
-            0L
-        }
-    }
-
-    /**
      * Get MLKit language code from locale string
-     * MLKit uses specific language codes that may differ from locale codes
      */
     private fun getMLKitLanguageCode(locale: String): String? {
         return when (locale) {

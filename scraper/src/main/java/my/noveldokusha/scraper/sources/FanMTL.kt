@@ -42,7 +42,7 @@ class FanMTL(
             element.select("script").remove()
             element.select("div[align=\"center\"]").remove()
             element.select(".ads").remove()
-            TextExtractor.get(element)
+            TextExtractor.extract(element)
         } ?: ""
     }
 
@@ -62,7 +62,7 @@ class FanMTL(
         tryConnect {
             networkClient.get(bookUrl).toDocument()
                 .selectFirst(".novel-info .description, .novel-synopsis")
-                ?.let { TextExtractor.get(it) }
+                ?.let { TextExtractor.extract(it) }
         }
     }
 

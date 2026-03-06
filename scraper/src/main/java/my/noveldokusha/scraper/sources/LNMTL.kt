@@ -37,7 +37,7 @@ class LNMTL(
 
     override suspend fun getChapterText(doc: Document): String = withContext(Dispatchers.Default) {
         doc.select(".chapter-body .translated").joinToString("\n") { element ->
-            TextExtractor.get(element)
+            TextExtractor.extract(element)
                 .replace("\u00ad", "")
                 .replace(Regex("\u201e[, ]*"), "&ldquo;")
                 .replace(Regex("\u201d[, ]*"), "&rdquo;")
@@ -64,7 +64,7 @@ class LNMTL(
         tryConnect {
             networkClient.get(bookUrl).toDocument()
                 .selectFirst(".novel .description, .novel-synopsis")
-                ?.let { TextExtractor.get(it) }
+                ?.let { TextExtractor.extract(it) }
         }
     }
 

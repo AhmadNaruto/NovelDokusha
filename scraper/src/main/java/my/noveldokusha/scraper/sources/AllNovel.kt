@@ -108,7 +108,7 @@ class AllNovel(
                 element.select(".ads").remove()
                 element.select("div:contains(allnovel.org)").remove()
                 element.select("p:contains(If you find any errors)").remove()
-                TextExtractor.get(element)
+                TextExtractor.extract(element)
             } ?: ""
         }
 }

@@ -46,7 +46,7 @@ class UuKanshu(
         val content = doc.selectFirst("div#contentbox")
         content?.let { 
             // Format text: remove ads and extra whitespace
-            val text = TextExtractor.get(it)
+            val text = TextExtractor.extract(it)
             text.replace(Regex("UU看书\\s*www\\.uukanshu\\.net"), "")
                 .replace(Regex("一秒记住【UU看书\\s*www\\.uukanshu\\.net】，精彩小说无弹窗免费阅读！"), "")
                 .trim()
@@ -66,9 +66,9 @@ class UuKanshu(
         tryConnect {
             val doc = networkClient.get(bookUrl).toDocument()
             val synopsis = doc.selectFirst("dl.jieshao dd.jieshao_content h3")
-                ?.let { TextExtractor.get(it) }
+                ?.let { TextExtractor.extract(it) }
                 ?: doc.selectFirst("dl.jieshao dd.jieshao_content h3 p")
-                    ?.let { TextExtractor.get(it) }
+                    ?.let { TextExtractor.extract(it) }
             synopsis
         }
     }

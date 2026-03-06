@@ -24,6 +24,7 @@ import my.noveldokusha.core.Toasty
 import my.noveldokusha.core.appPreferences.AppPreferences
 import my.noveldokusha.core.utils.asMutableStateOf
 import my.noveldokusha.text_translator.domain.TranslationManager
+import my.noveldokusha.settings.sections.TranslationMethod
 import java.io.File
 import javax.inject.Inject
 
@@ -68,7 +69,19 @@ internal class SettingsViewModel @Inject constructor(
         geminiApiKey = appPreferences.TRANSLATION_GEMINI_API_KEY.state(viewModelScope),
         geminiModel = appPreferences.TRANSLATION_GEMINI_MODEL.state(viewModelScope),
         preferOnlineTranslation = appPreferences.TRANSLATION_PREFER_ONLINE.state(viewModelScope),
+        currentTranslationMethod = stateHandle.asMutableStateOf("currentTranslationMethod") {
+            getCurrentTranslationMethod()
+        },
+        mlKitStorageSize = stateHandle.asMutableStateOf("mlKitStorageSize") { 0L }
     )
+
+    private fun getCurrentTranslationMethod(): TranslationMethod {
+        return when {
+            !appPreferences.TRANSLATION_PREFER_ONLINE.value -> TranslationMethod.MLKIT
+            appPreferences.TRANSLATION_GEMINI_API_KEY.value.isNotBlank() -> TranslationMethod.GEMINI
+            else -> TranslationMethod.GOOGLE_FREE
+        }
+    }
 
     init {
         updateDatabaseSize()
@@ -87,6 +100,18 @@ internal class SettingsViewModel @Inject constructor(
 
     fun removeTranslationModel(lang: String) {
         translationManager.removeModel(lang)
+    }
+
+    fun onTranslationMethodChange(method: TranslationMethod) {
+        state.currentTranslationMethod.value = method
+        when (method) {
+            TranslationMethod.MLKIT -> {
+                appPreferences.TRANSLATION_PREFER_ONLINE.value = false
+            }
+            TranslationMethod.GEMINI, TranslationMethod.GOOGLE_FREE -> {
+                appPreferences.TRANSLATION_PREFER_ONLINE.value = true
+            }
+        }
     }
 
     fun cleanDatabase() = appScope.launch(Dispatchers.IO) {

@@ -66,7 +66,7 @@ class WbNovel(private val networkClient: NetworkClient) : SourceInterface.Catalo
         withContext(Dispatchers.Default) {
             doc.selectFirst(".reading-content .text-left")?.let { 
               it.select("div").remove()
-              TextExtractor.get(it) 
+              TextExtractor.extract(it) 
             } ?: ""
         }
 
@@ -88,7 +88,7 @@ class WbNovel(private val networkClient: NetworkClient) : SourceInterface.Catalo
                     .get(bookUrl)
                     .toDocument()
                     .selectFirst(".content-area .summary__content p")
-                    ?.let { TextExtractor.get(it) }
+                    ?.let { TextExtractor.extract(it) }
             }
         }
 

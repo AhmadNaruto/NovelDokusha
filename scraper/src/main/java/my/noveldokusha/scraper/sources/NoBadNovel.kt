@@ -45,7 +45,7 @@ class NoBadNovel(
             it.select("ins").remove()
             it.select("a").remove()
             it.select(".hidden").remove()
-            TextExtractor.get(it)
+            TextExtractor.extract(it)
         }
     }
 
@@ -65,7 +65,7 @@ class NoBadNovel(
         tryConnect {
             networkClient.get(bookUrl).toDocument()
                 .selectFirst("#intro .content")
-                ?.let { TextExtractor.get(it) }
+                ?.let { TextExtractor.extract(it) }
         }
     }
 

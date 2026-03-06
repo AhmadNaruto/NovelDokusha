@@ -68,7 +68,7 @@ class Novelku(private val networkClient: NetworkClient) : SourceInterface.Catalo
         withContext(Dispatchers.Default) {
             doc.selectFirst(".read-container .text-left")!!.let {
                 it.select("script").remove()
-                TextExtractor.get(it)
+                TextExtractor.extract(it)
             }
         }
 
@@ -87,7 +87,7 @@ class Novelku(private val networkClient: NetworkClient) : SourceInterface.Catalo
         withContext(Dispatchers.Default) {
             tryConnect {
                 networkClient.get(bookUrl).toDocument().selectFirst(".summary__content")?.let {
-                    TextExtractor.get(it)
+                    TextExtractor.extract(it)
                 }
             }
         }

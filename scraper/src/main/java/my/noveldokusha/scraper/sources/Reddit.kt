@@ -36,7 +36,7 @@ class Reddit : SourceInterface.Base {
             .let {
                 it.select("table").remove()
                 it.select("blockquote").remove()
-                TextExtractor.get(it)
+                TextExtractor.extract(it)
             }
     }
 }

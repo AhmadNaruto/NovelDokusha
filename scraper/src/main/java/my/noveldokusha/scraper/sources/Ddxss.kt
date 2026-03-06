@@ -43,7 +43,7 @@ class Ddxss(
     override suspend fun getChapterText(doc: Document): String = withContext(Dispatchers.Default) {
         val content = doc.selectFirst("div#chaptercontent")
         content?.let { 
-            val text = TextExtractor.get(it)
+            val text = TextExtractor.extract(it)
             // Remove promotional text patterns
             text.replace(Regex("请收藏本站：.*"), "")
                 .replace(Regex("顶点小说手机版：.*"), "")
@@ -71,7 +71,7 @@ class Ddxss(
         tryConnect {
             networkClient.get(bookUrl).toDocument()
                 .selectFirst("div.book div.info div.intro")
-                ?.let { TextExtractor.get(it) }
+                ?.let { TextExtractor.extract(it) }
         }
     }
 

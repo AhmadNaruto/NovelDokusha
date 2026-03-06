@@ -95,7 +95,7 @@ class Ttkan(
         tryConnect {
             networkClient.get(bookUrl).toDocument("UTF-8")
                 .selectFirst(".description")
-                ?.let { TextExtractor.get(it) }
+                ?.let { TextExtractor.extract(it) }
         }
     }
 

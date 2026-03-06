@@ -60,7 +60,7 @@ class BacaLightnovel(private val networkClient: NetworkClient) : SourceInterface
     override suspend fun getChapterText(doc: Document): String =
         withContext(Dispatchers.Default) {
             doc.selectFirst("div .epcontent[itemprop=text] .text-left")!!.let {
-                TextExtractor.get(it)
+                TextExtractor.extract(it)
             }
         }
 
@@ -78,7 +78,7 @@ class BacaLightnovel(private val networkClient: NetworkClient) : SourceInterface
                     .get(bookUrl)
                     .toDocument()
                     .selectFirst("div[itemprop=description]")
-                    ?.let { TextExtractor.get(it) }
+                    ?.let { TextExtractor.extract(it) }
             }
         }
 

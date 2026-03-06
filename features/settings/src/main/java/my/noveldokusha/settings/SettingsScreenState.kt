@@ -6,6 +6,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import my.noveldokusha.core.domain.RemoteAppVersion
 import my.noveldokusha.text_translator.domain.TranslationModelState
 import my.noveldoksuha.coreui.theme.Themes
+import my.noveldokusha.settings.sections.TranslationMethod
 
 data class SettingsScreenState(
     val databaseSize: MutableState<String>,
@@ -19,6 +20,8 @@ data class SettingsScreenState(
     val geminiApiKey: State<String>,
     val geminiModel: State<String>,
     val preferOnlineTranslation: State<Boolean>,
+    val currentTranslationMethod: MutableState<TranslationMethod>,
+    val mlKitStorageSize: MutableState<Long>,
 ) {
     data class UpdateApp(
         val currentAppVersion: String,

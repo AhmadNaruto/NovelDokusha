@@ -30,9 +30,9 @@ import my.noveldokusha.settings.sections.AppUpdates
 import my.noveldokusha.settings.sections.LibraryAutoUpdate
 import my.noveldokusha.settings.sections.SettingsBackup
 import my.noveldokusha.settings.sections.SettingsData
-import my.noveldokusha.settings.sections.SettingsGeminiTranslation
 import my.noveldokusha.settings.sections.SettingsTheme
-import my.noveldokusha.settings.sections.SettingsTranslationModels
+import my.noveldokusha.settings.sections.SettingsTranslationMethod
+import my.noveldokusha.settings.sections.TranslationMethod
 
 @Composable
 internal fun SettingsScreenBody(
@@ -50,7 +50,21 @@ internal fun SettingsScreenBody(
     onGeminiApiKeyChange: (String) -> Unit,
     onGeminiModelChange: (String) -> Unit,
     onPreferOnlineChange: (Boolean) -> Unit,
+    onTranslationMethodChange: (TranslationMethod) -> Unit,
+    mlKitStorageSize: Long = 0L,
 ) {
+    // Determine current translation method based on settings
+    val currentTranslationMethod = remember(
+        state.geminiApiKey.value,
+        state.preferOnlineTranslation.value
+    ) {
+        when {
+            !state.preferOnlineTranslation.value -> TranslationMethod.MLKIT
+            state.geminiApiKey.value.isNotBlank() -> TranslationMethod.GEMINI
+            else -> TranslationMethod.GOOGLE_FREE
+        }
+    }
+
     Column(
         modifier = modifier.verticalScroll(rememberScrollState()),
     ) {
@@ -74,19 +88,16 @@ internal fun SettingsScreenBody(
         )
         if (state.isTranslationSettingsVisible.value) {
             HorizontalDivider()
-            SettingsTranslationModels(
-                translationModelsStates = state.translationModelsStates,
-                onDownloadTranslationModel = onDownloadTranslationModel,
-                onRemoveTranslationModel = onRemoveTranslationModel
-            )
-            HorizontalDivider()
-            SettingsGeminiTranslation(
+            SettingsTranslationMethod(
                 geminiApiKey = state.geminiApiKey.value,
                 geminiModel = state.geminiModel.value,
                 preferOnlineTranslation = state.preferOnlineTranslation.value,
+                currentTranslationMethod = currentTranslationMethod,
+                mlKitStorageSize = mlKitStorageSize,
                 onGeminiApiKeyChange = onGeminiApiKeyChange,
                 onGeminiModelChange = onGeminiModelChange,
-                onPreferOnlineChange = onPreferOnlineChange
+                onPreferOnlineChange = onPreferOnlineChange,
+                onTranslationMethodChange = onTranslationMethodChange
             )
         }
         HorizontalDivider()
@@ -144,6 +155,8 @@ private fun Preview() {
                     geminiApiKey = remember { derivedStateOf { "" } },
                     geminiModel = remember { derivedStateOf { "" } },
                     preferOnlineTranslation = remember { derivedStateOf { false } },
+                    currentTranslationMethod = remember { mutableStateOf(TranslationMethod.GOOGLE_FREE) },
+                    mlKitStorageSize = remember { mutableStateOf(0L) },
                 ),
                 onFollowSystem = { },
                 onThemeSelected = { },
@@ -157,6 +170,8 @@ private fun Preview() {
                 onGeminiApiKeyChange = { },
                 onGeminiModelChange = { },
                 onPreferOnlineChange = { },
+                onTranslationMethodChange = { },
+                mlKitStorageSize = 0L,
             )
         }
     }

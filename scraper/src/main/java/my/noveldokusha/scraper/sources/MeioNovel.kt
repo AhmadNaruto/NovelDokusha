@@ -67,7 +67,7 @@ class MeioNovel(private val networkClient: NetworkClient) : SourceInterface.Cata
         withContext(Dispatchers.Default) {
             doc.selectFirst(".reading-content")!!.let {
                 it.selectFirst("h1")?.remove()
-                TextExtractor.get(it)
+                TextExtractor.extract(it)
             }
         }
 
@@ -86,7 +86,7 @@ class MeioNovel(private val networkClient: NetworkClient) : SourceInterface.Cata
         withContext(Dispatchers.Default) {
             tryConnect {
                 networkClient.get(bookUrl).toDocument().selectFirst(".summary__content")?.let {
-                    TextExtractor.get(it)
+                    TextExtractor.extract(it)
                 }
             }
         }

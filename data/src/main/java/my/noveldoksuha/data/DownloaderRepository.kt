@@ -27,14 +27,14 @@ class DownloaderRepository @Inject constructor(
         val error by lazy {
             """
 			Incompatible source.
-			
+
 			Can't find compatible source for:
 			$bookUrl
 		""".trimIndent()
         }
 
         // Return if can't find compatible source for url
-        val scrap = scraper.getCompatibleSourceCatalog(bookUrl)
+        val scrap = scraper.findCatalogSource(bookUrl)
             ?: return@withContext Response.Error(error, Exception())
 
         my.noveldokusha.network.tryFlatConnect {
@@ -48,14 +48,14 @@ class DownloaderRepository @Inject constructor(
         val error by lazy {
             """
 			Incompatible source.
-			
+
 			Can't find compatible source for:
 			$bookUrl
 		""".trimIndent()
         }
 
         // Return if can't find compatible source for url
-        val scrap = scraper.getCompatibleSourceCatalog(bookUrl)
+        val scrap = scraper.findCatalogSource(bookUrl)
             ?: return@withContext Response.Error(error, Exception())
 
         my.noveldokusha.network.tryFlatConnect {
@@ -86,7 +86,7 @@ class DownloaderRepository @Inject constructor(
 			""".trimIndent()
             }
 
-            scraper.getCompatibleSource(realUrl)?.also { source ->
+            scraper.findSource(realUrl)?.also { source ->
                 val doc = networkClient.get(source.transformChapterUrl(realUrl)).toDocument(source.charset)
                 val data = my.noveldokusha.scraper.ChapterDownload(
                     content = source.getChapterText(doc) ?: return@also,
@@ -121,7 +121,7 @@ class DownloaderRepository @Inject constructor(
         }
 
         // Return if can't find compatible source for url
-        val scrap = scraper.getCompatibleSourceCatalog(bookUrl)
+        val scrap = scraper.findCatalogSource(bookUrl)
             ?: return@withContext Response.Error(error, Exception())
 
         my.noveldokusha.network.tryFlatConnect { scrap.getChapterList(bookUrl) }

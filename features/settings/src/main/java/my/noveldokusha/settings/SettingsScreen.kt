@@ -63,6 +63,8 @@ fun SettingsScreen() {
                 onGeminiApiKeyChange = viewModel::onGeminiApiKeyChange,
                 onGeminiModelChange = viewModel::onGeminiModelChange,
                 onPreferOnlineChange = viewModel::onPreferOnlineTranslationChange,
+                onTranslationMethodChange = viewModel::onTranslationMethodChange,
+                mlKitStorageSize = viewModel.state.mlKitStorageSize.value,
                 modifier = Modifier.padding(innerPadding),
             )
         }

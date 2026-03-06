@@ -19,6 +19,6 @@ class Sousetsuka: SourceInterface.Base {
 
     override suspend fun getChapterText(doc: Document): String = withContext(Dispatchers.Default) {
         doc.selectFirst(".post-body.entry-content")!!
-            .let { TextExtractor.get(it) }
+            .let { TextExtractor.extract(it) }
     }
 }

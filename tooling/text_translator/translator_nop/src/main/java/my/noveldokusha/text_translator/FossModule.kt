@@ -4,6 +4,7 @@ import android.content.Context
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import my.noveldokusha.core.AppCoroutineScope
 import my.noveldokusha.core.appPreferences.AppPreferences
@@ -17,7 +18,7 @@ object FossModule {
     @Provides
     @Singleton
     fun provideTranslationManager(
-        context: Context,
+        @ApplicationContext context: Context,
         appCoroutineScope: AppCoroutineScope,
         appPreferences: AppPreferences
     ): TranslationManager {

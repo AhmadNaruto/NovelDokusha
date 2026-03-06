@@ -54,7 +54,7 @@ class Shuba69(
             it.select("h1").remove()
             it.select("div.txtinfo").remove()
             it.select("div#txtright").remove()
-            TextExtractor.get(it)
+            TextExtractor.extract(it)
         } ?: ""
     }
 
@@ -71,7 +71,7 @@ class Shuba69(
         tryConnect {
             networkClient.get(bookUrl).toDocument(charset)
                 .selectFirst("div.navtxt")
-                ?.let { TextExtractor.get(it) }
+                ?.let { TextExtractor.extract(it) }
         }
     }
 

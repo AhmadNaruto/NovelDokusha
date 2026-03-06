@@ -57,7 +57,7 @@ class BakaUpdates(
                 .filter { it -> it.text().endsWith("(Novel)") }
                 .map { BookResult(title = it.text().removeNovelTag(), url = it.attr("href")) }
             val name = doc.selectFirst(".releasestitle.tabletitle")!!.text().removeNovelTag()
-            val associatedNames = TextExtractor.get(entry("Associated Names")).split("\n\n")
+            val associatedNames = TextExtractor.extract(entry("Associated Names")).split("\n\n")
 
             DatabaseInterface.AuthorData(
                 name = name,
@@ -208,7 +208,7 @@ class BakaUpdates(
                 it.selectFirst("[id=div_desc_more]") ?: it.selectFirst("div")
             }.also {
                 it?.select("a")?.remove()
-            }.let { TextExtractor.get(it!!) }
+            }.let { TextExtractor.extract(it!!) }
 
             val tags = entry("Categories")
                 .select("li > a")
@@ -226,7 +226,7 @@ class BakaUpdates(
             DatabaseInterface.BookData(
                 title = doc.selectFirst(".releasestitle.tabletitle")!!.text().removeNovelTag(),
                 description = description,
-                alternativeTitles = TextExtractor.get(entry("Associated Names")).split("\n\n"),
+                alternativeTitles = TextExtractor.extract(entry("Associated Names")).split("\n\n"),
                 relatedBooks = relatedBooks,
                 similarRecommended = similarRecommended,
                 bookType = entry("Type").text(),

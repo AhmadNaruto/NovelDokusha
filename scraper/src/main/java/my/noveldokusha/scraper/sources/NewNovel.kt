@@ -108,7 +108,7 @@ class NewNovel(
                 element.select(".ads").remove()
                 element.select("div:contains(newnovel.org)").remove()
                 element.select("p:contains(If you find any errors)").remove()
-                TextExtractor.get(element)
+                TextExtractor.extract(element)
             } ?: ""
         }
 }

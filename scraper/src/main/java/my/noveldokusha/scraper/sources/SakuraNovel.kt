@@ -60,7 +60,7 @@ class SakuraNovel(private val networkClient: NetworkClient) : SourceInterface.Ca
 
     override suspend fun getChapterText(doc: Document): String =
         withContext(Dispatchers.Default) {
-            doc.selectFirst(".container .asdasd")!!.let { TextExtractor.get(it) }
+            doc.selectFirst(".container .asdasd")!!.let { TextExtractor.extract(it) }
         }
 
     override suspend fun getBookCoverImageUrl(bookUrl: String): Response<String?> =
@@ -78,7 +78,7 @@ class SakuraNovel(private val networkClient: NetworkClient) : SourceInterface.Ca
         withContext(Dispatchers.Default) {
             tryConnect {
                 networkClient.get(bookUrl).toDocument().selectFirst(".series-synops")?.let {
-                    TextExtractor.get(it)
+                    TextExtractor.extract(it)
                 }
             }
         }

@@ -57,7 +57,7 @@ class RoyalRoad(
             it.select(".ads-title").remove()
             it.select(".hidden").remove()
             hiddenClasses.forEach { hc -> it.select(hc).remove() }
-            TextExtractor.get(it)
+            TextExtractor.extract(it)
         }
     }
 
@@ -77,7 +77,7 @@ class RoyalRoad(
         tryConnect {
             networkClient.get(bookUrl).toDocument()
                 .selectFirst(".description")
-                ?.let { TextExtractor.get(it) }
+                ?.let { TextExtractor.extract(it) }
         }
     }
 
