@@ -72,3 +72,10 @@
 -keep class my.noveldokusha.text_translator.TranslationManagerComposite { *; }
 -keep class my.noveldokusha.text_translator.TranslationManagerGemini { *; }
 -keep class my.noveldokusha.text_translator.TranslationManagerGoogleFree { *; }
+
+#### Supermarkdown
+# Keep native methods and Kotlin wrapper classes
+-keep class com.supermarkdown.** { *; }
+-keepclassmembers class com.supermarkdown.SupermarkdownNative {
+    *;
+}

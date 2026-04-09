@@ -67,7 +67,7 @@ class DatabaseSearchActivity : BaseActivity() {
                     onSearchModeChange = viewModel.state.searchMode::value::set,
                     onBookClicked = ::openBookInfoPage,
                     onBookLongClicked = {},
-                    onPressBack = ::onBackPressed
+                    onPressBack = { @Suppress("DEPRECATION") onBackPressed() }
                 )
             }
         }

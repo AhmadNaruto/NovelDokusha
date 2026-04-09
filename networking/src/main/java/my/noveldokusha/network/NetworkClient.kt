@@ -4,16 +4,16 @@ import android.content.Context
 import android.net.Uri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import my.noveldokusha.core.AppInternalState
+import my.noveldokusha.core.appPreferences.AppPreferences
 import my.noveldokusha.network.interceptors.CloudFareVerificationInterceptor
 import my.noveldokusha.network.interceptors.DecodeResponseInterceptor
 import my.noveldokusha.network.interceptors.UserAgentInterceptor
-import okhttp3.Cache
+import okhttp3.ConnectionPool
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import timber.log.Timber
-import java.io.File
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -28,10 +28,8 @@ interface NetworkClient {
 class ScraperNetworkClient @Inject constructor(
     @ApplicationContext private val appContext: Context,
     private val appInternalState: AppInternalState,
+    private val appPreferences: AppPreferences,
 ) : NetworkClient {
-
-    private val cacheDir = File(appContext.cacheDir, "network_cache")
-    private val cacheSize = 5L * 1024 * 1024
 
     private val cookieJar = ScraperCookieJar()
 
@@ -41,19 +39,30 @@ class ScraperNetworkClient @Inject constructor(
         level = HttpLoggingInterceptor.Level.HEADERS
     }
 
+    // No HTTP cache — OkHttp always fetches fresh data.
+    // Image caching is handled solely by Coil's disk/memory cache.
     val client = OkHttpClient.Builder()
+        .cache(null) // Disable OkHttp cache entirely
         .let {
             if (appInternalState.isDebugMode) {
                 it.addInterceptor(okhttpLoggingInterceptor)
             } else it
         }
-        .addInterceptor(UserAgentInterceptor())
+        .addInterceptor(UserAgentInterceptor(appPreferences))
         .addInterceptor(DecodeResponseInterceptor())
-        .addInterceptor(CloudFareVerificationInterceptor(appContext))
+        .addInterceptor(CloudFareVerificationInterceptor(appContext, appPreferences))
         .cookieJar(cookieJar)
-        .cache(Cache(cacheDir, cacheSize))
-        .connectTimeout(30, TimeUnit.SECONDS)
+        .connectionPool(
+            ConnectionPool(
+                maxIdleConnections = 10,
+                keepAliveDuration = 5,
+                timeUnit = TimeUnit.MINUTES,
+            )
+        )
+        .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
+        .writeTimeout(15, TimeUnit.SECONDS)
+        .retryOnConnectionFailure(true)
         .build()
 
     private val clientWithRedirects = client

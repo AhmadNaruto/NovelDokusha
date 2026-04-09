@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -57,6 +58,9 @@ internal class ChaptersViewModel @Inject constructor(
     private var loadChaptersJob: Job? = null
 
     @Volatile
+    private var downloadJob: Job? = null
+
+    @Volatile
     private var lastSelectedChapterUrl: String? = null
     private val source = scraper.getCompatibleSource(bookUrl)
     private val book = appRepository.libraryBooks.getFlow(bookUrl)
@@ -76,7 +80,8 @@ internal class ChaptersViewModel @Inject constructor(
         sourceCatalogNameStrRes = mutableStateOf(source?.nameStrId),
         settingChapterSort = appPreferences.CHAPTERS_SORT_ASCENDING.state(viewModelScope),
         isLocalSource = mutableStateOf(bookUrl.isLocalUri),
-        isRefreshable = mutableStateOf(rawBookUrl.isContentUri || !bookUrl.isLocalUri)
+        isRefreshable = mutableStateOf(rawBookUrl.isContentUri || !bookUrl.isLocalUri),
+        downloadProgress = mutableStateOf(DownloadProgress())
     )
 
     init {
@@ -230,21 +235,84 @@ internal class ChaptersViewModel @Inject constructor(
 
     fun downloadSelected() {
         if (state.isLocalSource.value) return
-        
+        if (downloadJob?.isActive == true) return
+
         // Get selected chapter URLs
         val selectedUrls = state.selectedChaptersUrl.keys.toSet()
-        
+
         // Filter and sort chapters by position to ensure sequential download
         val sortedChapters = state.chapters
             .filter { selectedUrls.contains(it.chapter.url) }
             .sortedBy { it.chapter.position }
-        
-        // Download chapters sequentially in order
-        appScope.launch(Dispatchers.Default) {
+
+        if (sortedChapters.isEmpty()) return
+
+        // Initialize download progress state
+        state.downloadProgress.value = DownloadProgress(
+            isDownloading = true,
+            total = sortedChapters.size,
+            completed = 0,
+            failed = 0,
+            currentChapterTitle = sortedChapters.firstOrNull()?.chapter?.title
+        )
+
+        // Download chapters sequentially in order with retry logic
+        downloadJob = appScope.launch(Dispatchers.Default) {
+            val failedChapters = mutableListOf<String>()
+
             sortedChapters.forEach { chapter ->
-                appRepository.chapterBody.fetchBody(chapter.chapter.url)
+                // Check for cancellation
+                if (!isActive) return@launch
+
+                // Update current chapter title in progress
+                state.downloadProgress.value = state.downloadProgress.value.copy(
+                    currentChapterTitle = chapter.chapter.title
+                )
+
+                // Try downloading with up to 2 retries
+                var success = false
+                var attempts = 0
+                val maxAttempts = 3
+
+                while (!success && attempts < maxAttempts) {
+                    attempts++
+                    val result = appRepository.chapterBody.fetchBody(chapter.chapter.url)
+                    if (result is my.noveldokusha.core.Response.Success) {
+                        success = true
+                    }
+                }
+
+                if (success) {
+                    state.downloadProgress.value = state.downloadProgress.value.copy(
+                        completed = state.downloadProgress.value.completed + 1
+                    )
+                } else {
+                    failedChapters.add(chapter.chapter.title)
+                    state.downloadProgress.value = state.downloadProgress.value.copy(
+                        failed = state.downloadProgress.value.failed + 1,
+                        failedChapters = failedChapters.toList()
+                    )
+                }
             }
+
+            // Mark download as complete
+            state.downloadProgress.value = state.downloadProgress.value.copy(
+                isDownloading = false,
+                currentChapterTitle = null
+            )
         }
+    }
+
+    fun cancelDownloads() {
+        downloadJob?.cancel()
+        state.downloadProgress.value = state.downloadProgress.value.copy(
+            isDownloading = false,
+            currentChapterTitle = null
+        )
+    }
+
+    fun clearDownloadProgress() {
+        state.downloadProgress.value = DownloadProgress()
     }
 
     fun deleteDownloadsSelected() {

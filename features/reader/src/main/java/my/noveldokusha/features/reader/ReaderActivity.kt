@@ -8,6 +8,7 @@ import android.view.WindowManager
 import android.widget.AbsListView
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.addCallback
 import androidx.activity.viewModels
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -113,6 +114,10 @@ class ReaderActivity : BaseActivity() {
 
     private val fontsLoader = FontsLoader()
 
+    private var onBackPressedCallback: androidx.activity.OnBackPressedCallback? = null
+
+    @Suppress("DEPRECATION")
+    @Deprecated("Deprecated in Java", ReplaceWith("OnBackPressedDispatcher"))
     override fun onBackPressed() {
         viewModel.onCloseManually()
         super.onBackPressed()
@@ -126,6 +131,7 @@ class ReaderActivity : BaseActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        fontsLoader.init(this)
         viewBind.listView.adapter = viewAdapter.listView
 
         fadeInTextLiveData.distinctUntilChanged().observe(this) {

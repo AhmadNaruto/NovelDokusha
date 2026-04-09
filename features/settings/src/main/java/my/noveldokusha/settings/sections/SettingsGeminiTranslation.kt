@@ -34,13 +34,15 @@ internal fun SettingsGeminiTranslation(
     geminiApiKey: String,
     geminiModel: String,
     preferOnlineTranslation: Boolean,
+    preferOfflineTranslation: Boolean,
     onGeminiApiKeyChange: (String) -> Unit,
     onGeminiModelChange: (String) -> Unit,
     onPreferOnlineChange: (Boolean) -> Unit,
+    onPreferOfflineChange: (Boolean) -> Unit,
 ) {
     var apiKeyText by remember(geminiApiKey) { mutableStateOf(geminiApiKey) }
     var modelText by remember(geminiModel) { mutableStateOf(geminiModel) }
-    
+
     Column {
         Text(
             text = "Translation Services",
@@ -48,19 +50,23 @@ internal fun SettingsGeminiTranslation(
             modifier = Modifier.textPadding(),
             color = ColorAccent
         )
-        
+
         // Show active service
+        val activeServiceText = when {
+            preferOfflineTranslation -> "Active: MLKit (Offline)"
+            geminiApiKey.isNotBlank() && preferOnlineTranslation -> "Active: Google Gemini API"
+            else -> "Active: Google Translate (Free)"
+        }
+        val activeServiceColor = when {
+            preferOfflineTranslation -> MaterialTheme.colorScheme.tertiary
+            geminiApiKey.isNotBlank() && preferOnlineTranslation -> MaterialTheme.colorScheme.primary
+            else -> MaterialTheme.colorScheme.secondary
+        }
         Text(
-            text = if (geminiApiKey.isNotBlank() && preferOnlineTranslation) 
-                "Active: Google Gemini API" 
-            else 
-                "Active: Google Translate (Free)",
+            text = activeServiceText,
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.textPadding(),
-            color = if (geminiApiKey.isNotBlank() && preferOnlineTranslation)
-                MaterialTheme.colorScheme.primary
-            else
-                MaterialTheme.colorScheme.secondary
+            color = activeServiceColor
         )
         
         ListItem(
@@ -162,6 +168,28 @@ internal fun SettingsGeminiTranslation(
                     checked = preferOnlineTranslation,
                     onCheckedChange = onPreferOnlineChange,
                     enabled = apiKeyText.isNotBlank()
+                )
+            }
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        ListItem(
+            headlineContent = {
+                Text(text = "Use MLKit Offline")
+            },
+            supportingContent = {
+                Text(
+                    text = "When enabled, uses on-device MLKit translation that works without internet. " +
+                        "Requires downloading language models first via the Translation Models manager below. " +
+                        "When disabled, uses online translation services.",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            },
+            trailingContent = {
+                Switch(
+                    checked = preferOfflineTranslation,
+                    onCheckedChange = onPreferOfflineChange
                 )
             }
         )

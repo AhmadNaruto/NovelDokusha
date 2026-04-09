@@ -463,8 +463,8 @@ class RestoreDataService : Service() {
                     entry.name == "database.sqlite3" -> {
                         Timber.d("restoreData: Merging database from ${entry.name}, size: ${file.size} bytes")
                         // Verify SQLite header
-                        val header = file.take(16).map { "%02x".format(it) }.joinToString("")
-                        Timber.d("restoreData: Database file header: $header")
+                        val dbHeader = file.take(16).map { "%02x".format(it) }.joinToString("")
+                        Timber.d("restoreData: Database file header: $dbHeader")
                         mergeToDatabase(file.inputStream())
                     }
                     entry.name.startsWith("books/") -> {

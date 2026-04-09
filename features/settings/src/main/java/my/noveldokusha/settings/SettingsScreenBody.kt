@@ -33,6 +33,7 @@ import my.noveldokusha.settings.sections.SettingsData
 import my.noveldokusha.settings.sections.SettingsGeminiTranslation
 import my.noveldokusha.settings.sections.SettingsTheme
 import my.noveldokusha.settings.sections.SettingsTranslationModels
+import my.noveldokusha.settings.sections.SettingsUserAgent
 
 @Composable
 internal fun SettingsScreenBody(
@@ -50,6 +51,8 @@ internal fun SettingsScreenBody(
     onGeminiApiKeyChange: (String) -> Unit,
     onGeminiModelChange: (String) -> Unit,
     onPreferOnlineChange: (Boolean) -> Unit,
+    onPreferOfflineChange: (Boolean) -> Unit,
+    onUserAgentChange: (String) -> Unit,
 ) {
     Column(
         modifier = modifier.verticalScroll(rememberScrollState()),
@@ -84,13 +87,21 @@ internal fun SettingsScreenBody(
                 geminiApiKey = state.geminiApiKey.value,
                 geminiModel = state.geminiModel.value,
                 preferOnlineTranslation = state.preferOnlineTranslation.value,
+                preferOfflineTranslation = state.preferOfflineTranslation.value,
                 onGeminiApiKeyChange = onGeminiApiKeyChange,
                 onGeminiModelChange = onGeminiModelChange,
-                onPreferOnlineChange = onPreferOnlineChange
+                onPreferOnlineChange = onPreferOnlineChange,
+                onPreferOfflineChange = onPreferOfflineChange
             )
         }
         HorizontalDivider()
         LibraryAutoUpdate(state = state.libraryAutoUpdate)
+        HorizontalDivider()
+        SettingsUserAgent(
+            currentUserAgent = state.userAgent.value,
+            defaultUserAgent = state.defaultUserAgent,
+            onUserAgentChange = onUserAgentChange,
+        )
         HorizontalDivider()
         AppUpdates(
             state = state.updateAppSetting,
@@ -144,6 +155,9 @@ private fun Preview() {
                     geminiApiKey = remember { derivedStateOf { "" } },
                     geminiModel = remember { derivedStateOf { "" } },
                     preferOnlineTranslation = remember { derivedStateOf { false } },
+                    preferOfflineTranslation = remember { derivedStateOf { false } },
+                    userAgent = remember { mutableStateOf("") },
+                    defaultUserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64)",
                 ),
                 onFollowSystem = { },
                 onThemeSelected = { },
@@ -157,6 +171,8 @@ private fun Preview() {
                 onGeminiApiKeyChange = { },
                 onGeminiModelChange = { },
                 onPreferOnlineChange = { },
+                onPreferOfflineChange = { },
+                onUserAgentChange = { },
             )
         }
     }

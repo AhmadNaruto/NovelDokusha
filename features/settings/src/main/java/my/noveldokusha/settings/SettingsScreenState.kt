@@ -19,6 +19,9 @@ data class SettingsScreenState(
     val geminiApiKey: State<String>,
     val geminiModel: State<String>,
     val preferOnlineTranslation: State<Boolean>,
+    val preferOfflineTranslation: State<Boolean>,
+    val userAgent: MutableState<String>,
+    val defaultUserAgent: String = "Mozilla/5.0 (Windows NT 6.3; WOW64)",
 ) {
     data class UpdateApp(
         val currentAppVersion: String,

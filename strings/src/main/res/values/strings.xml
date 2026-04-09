@@ -201,4 +201,14 @@
     <string name="cloudfare_firewall_failed_bypass">Cloudfare firewall failed bypass</string>
     <string name="tried_but_failed_to_bypass_cloudfare_firewall">Tried but failed to bypass cloudfare firewall</string>
     <string name="features_reader_full_screen">Full screen</string>
+    <string name="downloading_chapter">Downloading: %s</string>
+    <string name="download_complete">Download complete: %1$d/%2$d succeeded</string>
+    <string name="download_failed_count">%1$d failed</string>
+    <string name="cancel_download">Cancel downloads</string>
+    <string name="dismiss_progress">Dismiss</string>
+    <string name="settings_user_agent_title">User-Agent</string>
+    <string name="settings_user_agent_description">Custom User-Agent string sent with all network requests. Leave empty to use the default.</string>
+    <string name="settings_user_agent_reset">Reset to default</string>
+    <string name="settings_user_agent_active">Active:</string>
+    <string name="settings_user_agent_default">Default:</string>
 </resources>

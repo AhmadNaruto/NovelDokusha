@@ -12,8 +12,9 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.doOnNextLayout
 import androidx.core.view.updateLayoutParams
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import coil.Coil
+import coil.request.Disposable
+import coil.request.ImageRequest
 import my.noveldokusha.core.AppFileResolver
 import my.noveldokusha.core.utils.inflater
 import my.noveldokusha.features.reader.features.TextSynthesis
@@ -172,18 +173,27 @@ internal class ReaderItemAdapter(
             imagePath = item.image.path
         )
 
-        // Glide uses current imageView size to load the bitmap best optimized for it, but current
-        // size corresponds to the last image (different size) and the view layout only updates to
-        // the new values on next redraw. Execute Glide loading call in the next (parent) layout
-        // update to let it get the correct values.
-        // (Avoids getting "blurry" images)
+        // Coil loading on next layout to get correct view dimensions
         bind.imageContainer.doOnNextLayout {
-            Glide.with(ctx)
-                .load(imageModel)
-                .fitCenter()
+            // Cancel any previous load for this view
+            activeImageLoads[bind.image]?.dispose()
+
+            val request = ImageRequest.Builder(ctx)
+                .data(imageModel)
+                .crossfade(true)
                 .error(R.drawable.ic_baseline_error_outline_24)
-                .transition(DrawableTransitionOptions.withCrossFade())
-                .into(bind.image)
+                .target(
+                    onSuccess = { result: android.graphics.drawable.Drawable -> bind.image.setImageDrawable(result) },
+                    onError = {
+                        AppCompatResources.getDrawable(
+                            ctx,
+                            R.drawable.ic_baseline_error_outline_24
+                        )?.let { bind.image.setImageDrawable(it) }
+                    }
+                )
+                .build()
+
+            activeImageLoads[bind.image] = Coil.imageLoader(ctx).enqueue(request)
         }
 
         when (item.location) {
@@ -322,6 +332,9 @@ internal class ReaderItemAdapter(
             R.drawable.translucent_current_reading_loading_text_background
         )
     }
+
+    // Track active Coil image loads so we can cancel them when views are recycled
+    private val activeImageLoads = mutableMapOf<View, Disposable>()
 
     private fun TextView.updateTextSelectability() {
         val selectableText = currentTextSelectability()

@@ -39,7 +39,7 @@ object TextExtractor {
         }
 
         val paragraph = innerTraverse(node).trim()
-        return if (paragraph.isEmpty()) "" else innerTraverse(node).trim() + "\n\n"
+        return if (paragraph.isEmpty()) "" else paragraph + "\n\n"
     }
 
     private fun getNodeTextTraverse(node: Node): String {

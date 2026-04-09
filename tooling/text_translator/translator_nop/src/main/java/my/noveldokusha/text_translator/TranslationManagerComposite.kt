@@ -11,36 +11,72 @@ import my.noveldokusha.text_translator.domain.TranslationModelState
 import my.noveldokusha.text_translator.domain.TranslatorState
 
 /**
- * Composite translation manager that switches between Gemini and Google Translate Free
- * Uses Gemini if API key is configured, otherwise falls back to Google Translate Free
+ * Composite translation manager that supports three backends:
+ * 1. Gemini (online, requires API key)
+ * 2. Google Translate Free (online, no API key)
+ * 3. MLKit (offline, requires model download)
  */
 class TranslationManagerComposite(
     private val coroutineScope: AppCoroutineScope,
     private val geminiManager: TranslationManagerGemini,
     private val googleFreeManager: TranslationManagerGoogleFree,
+    private val mlKitManager: TranslationManagerMlKit,
     private val appPreferences: AppPreferences
 ) : TranslationManager {
 
     override val available: Boolean = true
 
-    override val isUsingOnlineTranslation: Boolean = true
+    override val isUsingOnlineTranslation: Boolean
+        get() = getActiveMode() != TranslationMode.OFFLINE
+
+    enum class TranslationMode {
+        GEMINI,          // Online, API key required
+        GOOGLE_FREE,     // Online, no API key
+        OFFLINE          // MLKit offline
+    }
 
     override val models = mutableStateListOf<TranslationModelState>()
 
     init {
-        // Merge models from both providers
+        // Merge languages from all providers
         val allLanguages = mutableSetOf<String>()
-        allLanguages.addAll(geminiManager.models.map { it.language })
+        allLanguages.addAll(mlKitManager.models.map { it.language })
         allLanguages.addAll(googleFreeManager.models.map { it.language })
+        allLanguages.addAll(geminiManager.models.map { it.language })
+
+        // For MLKit languages, use actual download status from mlKitManager.
+        // For online-only languages (Gemini/Google Free), available is always true.
+        val mlKitDownloadStatus = mlKitManager.models.associate { it.language to it.available }
+        Log.d(TAG, "init: mlKitDownloadStatus=$mlKitDownloadStatus")
 
         models.addAll(allLanguages.map { lang ->
+            val isMlKitLang = lang in mlKitDownloadStatus
             TranslationModelState(
                 language = lang,
-                available = true,
+                available = if (isMlKitLang) mlKitDownloadStatus[lang] == true else true,
                 downloading = false,
                 downloadingFailed = false
             )
         })
+    }
+
+    // Sync composite models list with MLKit manager's actual download status
+    init {
+        mlKitManager.onModelStatusChanged = { language, available, downloading, failed ->
+            Log.d(TAG, "onModelStatusChanged: language=$language, available=$available, downloading=$downloading, failed=$failed")
+            updateModelStatus(language, available, downloading, failed)
+        }
+    }
+
+    private fun updateModelStatus(language: String, available: Boolean, downloading: Boolean, failed: Boolean) {
+        val index = models.indexOfFirst { it.language == language }
+        if (index >= 0) {
+            models[index] = models[index].copy(
+                available = available,
+                downloading = downloading,
+                downloadingFailed = failed
+            )
+        }
     }
 
     override suspend fun hasModelDownloaded(language: String): TranslationModelState? {
@@ -52,16 +88,28 @@ class TranslationManagerComposite(
         return apiKey.isNotBlank()
     }
 
-    override fun getTranslator(source: String, target: String): TranslatorState {
+    private fun getActiveMode(): TranslationMode {
         val hasApiKey = hasGeminiApiKey()
         val preferOnline = appPreferences.TRANSLATION_PREFER_ONLINE.value
-
-        Log.d(TAG, "getTranslator: source=$source, target=$target")
-        Log.d(TAG, "  hasGeminiApiKey=$hasApiKey, preferOnline=$preferOnline")
+        val preferOffline = appPreferences.TRANSLATION_PREFER_OFFLINE.value
 
         return when {
-            // Use Gemini if API key is configured and online translation is preferred
-            hasApiKey && preferOnline -> {
+            preferOffline -> TranslationMode.OFFLINE
+            hasApiKey && preferOnline -> TranslationMode.GEMINI
+            else -> TranslationMode.GOOGLE_FREE
+        }
+    }
+
+    override fun getTranslator(source: String, target: String): TranslatorState {
+        val mode = getActiveMode()
+        Log.d(TAG, "getTranslator: source=$source, target=$target, mode=$mode")
+
+        return when (mode) {
+            TranslationMode.OFFLINE -> {
+                Log.d(TAG, "getTranslator: using MLKit offline translation")
+                mlKitManager.getTranslator(source, target)
+            }
+            TranslationMode.GEMINI -> {
                 Log.d(TAG, "getTranslator: using Gemini with Google Free fallback")
                 val geminiTranslator = geminiManager.getTranslator(source, target)
                 val googleFreeTranslator = googleFreeManager.getTranslator(source, target)
@@ -106,65 +154,69 @@ class TranslationManagerComposite(
                     }
                 )
             }
-
-            // Use Google Translate Free if no API key or online not preferred
-            else -> {
-                Log.d(TAG, "getTranslator: using Google Translate Free (${if (!hasApiKey) "no API key" else "offline preferred"})")
+            TranslationMode.GOOGLE_FREE -> {
+                Log.d(TAG, "getTranslator: using Google Translate Free")
                 googleFreeManager.getTranslator(source, target)
             }
         }
     }
 
     override fun downloadModel(language: String) {
-        // No-op for online translation
+        Log.d(TAG, "downloadModel: composite requested for language=$language")
+        // Update composite's model status to show downloading state
+        updateModelStatus(language, available = false, downloading = true, failed = false)
+
+        mlKitManager.downloadModel(language)
     }
 
     override fun removeModel(language: String) {
-        // No-op for online translation
+        mlKitManager.removeModel(language)
+
+        // Update composite's model status
+        updateModelStatus(language, available = false, downloading = false, failed = false)
     }
 
-    /**
-     * Invalidate cache in both managers
-     */
     fun invalidateCacheFor(sourceLanguage: String, targetLanguage: String, text: String? = null) {
-        Log.d(TAG, "invalidateCacheFor: delegating to both managers")
+        Log.d(TAG, "invalidateCacheFor: delegating to all managers")
         geminiManager.invalidateCacheFor(sourceLanguage, targetLanguage, text)
         googleFreeManager.invalidateCacheFor(sourceLanguage, targetLanguage, text)
+        mlKitManager.invalidateCacheFor(sourceLanguage, targetLanguage, text)
     }
 
-    /**
-     * Get current active translator name for UI display
-     */
     fun getActiveTranslatorName(): String {
-        return if (hasGeminiApiKey() && appPreferences.TRANSLATION_PREFER_ONLINE.value) {
-            "Google Gemini API"
-        } else {
-            "Google Translate (Free)"
+        return when (getActiveMode()) {
+            TranslationMode.GEMINI -> "Google Gemini API"
+            TranslationMode.GOOGLE_FREE -> "Google Translate (Free)"
+            TranslationMode.OFFLINE -> "MLKit (Offline)"
         }
     }
 
-    /**
-     * Batch translation - delegates to active manager
-     */
     override suspend fun translateBatch(
         texts: List<String>,
         sourceLanguage: String,
         targetLanguage: String
     ): Map<String, String> = withContext(Dispatchers.IO) {
-        val hasApiKey = hasGeminiApiKey()
-        val preferOnline = appPreferences.TRANSLATION_PREFER_ONLINE.value
+        val mode = getActiveMode()
 
-        if (hasApiKey && preferOnline) {
-            Log.d(TAG, "translateBatch: using Gemini")
-            try {
-                return@withContext geminiManager.translateBatch(texts, sourceLanguage, targetLanguage)
-            } catch (e: Exception) {
-                Log.e(TAG, "translateBatch: Gemini failed, falling back to Google Free", e)
+        return@withContext when (mode) {
+            TranslationMode.OFFLINE -> {
+                Log.d(TAG, "translateBatch: using MLKit")
+                mlKitManager.translateBatch(texts, sourceLanguage, targetLanguage)
+            }
+            TranslationMode.GEMINI -> {
+                Log.d(TAG, "translateBatch: using Gemini")
+                try {
+                    geminiManager.translateBatch(texts, sourceLanguage, targetLanguage)
+                } catch (e: Exception) {
+                    Log.e(TAG, "translateBatch: Gemini failed, falling back to Google Free", e)
+                    googleFreeManager.translateBatch(texts, sourceLanguage, targetLanguage)
+                }
+            }
+            TranslationMode.GOOGLE_FREE -> {
+                Log.d(TAG, "translateBatch: using Google Translate Free")
+                googleFreeManager.translateBatch(texts, sourceLanguage, targetLanguage)
             }
         }
-
-        Log.d(TAG, "translateBatch: using Google Translate Free")
-        return@withContext googleFreeManager.translateBatch(texts, sourceLanguage, targetLanguage)
     }
 
     companion object {

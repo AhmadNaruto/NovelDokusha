@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -59,6 +60,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Snackbar
 import androidx.compose.ui.unit.dp
 import my.nanihadesuka.compose.InternalLazyColumnScrollbar
 import my.noveldoksuha.coreui.theme.ColorAccent
@@ -98,6 +102,8 @@ internal fun ChaptersScreen(
     onChangeCover: () -> Unit,
     onOpenInBrowser: (url: String) -> Unit,
     onGlobalSearchClick: (input: String) -> Unit,
+    onCancelDownloads: () -> Unit,
+    onClearDownloadProgress: () -> Unit,
 ) {
     var showDropDown by rememberSaveable { mutableStateOf(false) }
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
@@ -351,6 +357,77 @@ internal fun ChaptersScreen(
             }
         }
     )
+
+    // Download progress overlay
+    if (state.downloadProgress.value.isDownloading || state.downloadProgress.value.isComplete) {
+        val progress = state.downloadProgress.value
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = if (state.isInSelectionMode.value) 80.dp else 16.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Snackbar(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                action = {
+                    if (progress.isDownloading) {
+                        IconButton(onClick = onCancelDownloads) {
+                            Icon(
+                                Icons.Filled.Close,
+                                contentDescription = stringResource(id = android.R.string.cancel),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    } else if (progress.isComplete) {
+                        IconButton(onClick = onClearDownloadProgress) {
+                            Icon(
+                                Icons.Filled.Close,
+                                contentDescription = stringResource(id = android.R.string.ok),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+                }
+            ) {
+                Column {
+                    Text(
+                        text = if (progress.isDownloading) {
+                            stringResource(R.string.downloading_chapter, progress.currentChapterTitle ?: "")
+                        } else if (progress.isComplete) {
+                            stringResource(R.string.download_complete, progress.completed, progress.total)
+                        } else {
+                            ""
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    if (progress.isDownloading) {
+                        LinearProgressIndicator(
+                            progress = { progress.percentage / 100f },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                        )
+                    }
+                    Text(
+                        text = "${progress.completed}/${progress.total} (${progress.percentage}%)",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    if (progress.failed > 0) {
+                        Text(
+                            text = stringResource(R.string.download_failed_count, progress.failed),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     ChaptersBottomSheet(
         visible = showBottomSheet,

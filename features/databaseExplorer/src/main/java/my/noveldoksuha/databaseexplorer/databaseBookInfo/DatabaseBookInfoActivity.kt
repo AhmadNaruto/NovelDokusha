@@ -53,7 +53,7 @@ class DatabaseBookInfoActivity : BaseActivity() {
                     onGenresClick = ::openSearchPageByGenres,
                     onBookClick = ::openBookInfo,
                     onOpenInWeb = { navigationRoutes.webView(this, viewModel.bookUrl).let(::startActivity) },
-                    onPressBack = ::onBackPressed
+                    onPressBack = { @Suppress("DEPRECATION") onBackPressed() }
                 )
             }
         }

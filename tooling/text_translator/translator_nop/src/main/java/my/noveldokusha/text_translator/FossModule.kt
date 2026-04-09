@@ -17,17 +17,19 @@ object FossModule {
     @Singleton
     fun provideTranslationManager(
         appCoroutineScope: AppCoroutineScope,
-        appPreferences: AppPreferences
+        appPreferences: AppPreferences,
+        mlKitManager: TranslationManagerMlKit
     ): TranslationManager {
-        // Create both managers
+        // Create all three managers
         val geminiManager = TranslationManagerGemini(appCoroutineScope, appPreferences)
         val googleFreeManager = TranslationManagerGoogleFree(appCoroutineScope)
-        
-        // Use composite to switch between them based on API key availability
+
+        // Use composite to switch between them based on API key availability and preference
         return TranslationManagerComposite(
             appCoroutineScope,
             geminiManager,
             googleFreeManager,
+            mlKitManager,
             appPreferences
         )
     }

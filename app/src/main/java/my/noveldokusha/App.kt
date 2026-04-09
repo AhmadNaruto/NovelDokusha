@@ -5,6 +5,9 @@ import android.util.Log
 import androidx.work.Configuration
 import coil.ImageLoader
 import coil.ImageLoaderFactory
+import coil.disk.DiskCache
+import coil.memory.MemoryCache
+import coil.request.CachePolicy
 import dagger.hilt.EntryPoints
 import dagger.hilt.android.HiltAndroidApp
 import my.noveldokusha.di.HiltAppEntryPoint
@@ -36,6 +39,22 @@ class App : Application(), ImageLoaderFactory, Configuration.Provider {
         is ScraperNetworkClient -> ImageLoader
             .Builder(this)
             .okHttpClient(networkClient.client)
+            .memoryCachePolicy(CachePolicy.ENABLED)
+            .memoryCache(
+                MemoryCache.Builder(this)
+                    .maxSizePercent(0.25) // 25% of available app memory
+                    .build()
+            )
+            .diskCachePolicy(CachePolicy.ENABLED)
+            .diskCache(
+                DiskCache.Builder()
+                    .directory(cacheDir.resolve("coil_image_cache"))
+                    .maxSizePercent(0.02) // 2% of available disk space
+                    .maxSizeBytes(50L * 1024 * 1024) // Cap at 50 MB
+                    .build()
+            )
+            .respectCacheHeaders(false) // Use our own caching strategy via Coil disk cache
+            .crossfade(true)
             .build()
 
         else -> ImageLoader(this)

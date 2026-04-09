@@ -7,7 +7,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.bumptech.glide.Glide
+import coil.Coil
+import coil.annotation.ExperimentalCoilApi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -69,6 +70,8 @@ internal class SettingsViewModel @Inject constructor(
         geminiApiKey = appPreferences.TRANSLATION_GEMINI_API_KEY.state(viewModelScope),
         geminiModel = appPreferences.TRANSLATION_GEMINI_MODEL.state(viewModelScope),
         preferOnlineTranslation = appPreferences.TRANSLATION_PREFER_ONLINE.state(viewModelScope),
+        preferOfflineTranslation = appPreferences.TRANSLATION_PREFER_OFFLINE.state(viewModelScope),
+        userAgent = appPreferences.NETWORK_USER_AGENT.state(viewModelScope),
     )
 
     init {
@@ -96,6 +99,7 @@ internal class SettingsViewModel @Inject constructor(
         updateDatabaseSize()
     }
 
+    @OptIn(ExperimentalCoilApi::class)
     fun cleanImagesFolder() = appScope.launch(Dispatchers.IO) {
         val libraryFolders = appRepository.libraryBooks.getAllInLibrary()
             .asSequence()
@@ -108,7 +112,7 @@ internal class SettingsViewModel @Inject constructor(
             ?.filter { it.name !in libraryFolders }
             ?.forEach { it.deleteRecursively() }
         updateImagesFolderSize()
-        Glide.get(context).clearDiskCache()
+        Coil.imageLoader(context).diskCache?.clear()
     }
 
     fun onFollowSystemChange(follow: Boolean) {
@@ -129,6 +133,20 @@ internal class SettingsViewModel @Inject constructor(
 
     fun onPreferOnlineTranslationChange(prefer: Boolean) {
         appPreferences.TRANSLATION_PREFER_ONLINE.value = prefer
+        if (prefer) {
+            appPreferences.TRANSLATION_PREFER_OFFLINE.value = false
+        }
+    }
+
+    fun onPreferOfflineTranslationChange(prefer: Boolean) {
+        appPreferences.TRANSLATION_PREFER_OFFLINE.value = prefer
+        if (prefer) {
+            appPreferences.TRANSLATION_PREFER_ONLINE.value = false
+        }
+    }
+
+    fun onUserAgentChange(userAgent: String) {
+        appPreferences.NETWORK_USER_AGENT.value = userAgent
     }
 
     private fun updateDatabaseSize() = viewModelScope.launch {

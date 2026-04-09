@@ -20,7 +20,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -66,9 +65,11 @@ internal fun SettingsTranslationModelsDialog(
                             when {
                                 it.available -> {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(
-                                            Icons.Outlined.Done,
-                                            contentDescription = null
+                                        Text(
+                                            text = "✓",
+                                            color = MaterialTheme.colorScheme.primary,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            modifier = Modifier.padding(end = 4.dp)
                                         )
                                         IconButton(
                                             onClick = { onRemoveTranslationModel(it.language) },
@@ -82,11 +83,33 @@ internal fun SettingsTranslationModelsDialog(
                                     }
                                 }
 
-                                it.downloading -> IconButton(onClick = { }, enabled = false) {
+                                it.downloading -> Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = "⏳",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        modifier = Modifier.padding(end = 4.dp)
+                                    )
                                     CircularProgressIndicator(
                                         modifier = Modifier.size(22.dp),
                                         color = MaterialTheme.colorScheme.onPrimary
                                     )
+                                }
+
+                                it.downloadingFailed -> Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = "✗",
+                                        color = Color.Red,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        modifier = Modifier.padding(end = 4.dp)
+                                    )
+                                    IconButton(
+                                        onClick = { onDownloadTranslationModel(it.language) }) {
+                                        Icon(
+                                            Icons.Filled.CloudDownload,
+                                            contentDescription = null,
+                                            tint = Color.Red
+                                        )
+                                    }
                                 }
 
                                 else -> IconButton(
@@ -94,8 +117,6 @@ internal fun SettingsTranslationModelsDialog(
                                     Icon(
                                         Icons.Filled.CloudDownload,
                                         contentDescription = null,
-                                        tint = if (it.downloadingFailed) Color.Red
-                                        else LocalContentColor.current
                                     )
                                 }
                             }

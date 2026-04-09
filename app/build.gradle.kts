@@ -47,6 +47,17 @@ android {
         versionCode = 28
         versionName = "2.3.9"
         setProperty("archivesBaseName", "WebnovelReader_v$versionName")
+        
+        // Configure native libraries - arm64-v8a only
+        ndk {
+            abiFilters += listOf("arm64-v8a")
+        }
+    }
+
+    sourceSets {
+        getByName("main") {
+            jniLibs.srcDirs("src/main/jniLibs")
+        }
     }
 
     signingConfigs {

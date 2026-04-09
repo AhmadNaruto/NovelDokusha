@@ -23,7 +23,7 @@ dependencies {
 
     implementation(libs.material)
     implementation(libs.androidx.media)
-    implementation(libs.compose.landscapist.glide)
+    implementation(libs.compose.coil)
     implementation(libs.compose.androidx.material.icons.extended)
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.compose.androidx.activity)

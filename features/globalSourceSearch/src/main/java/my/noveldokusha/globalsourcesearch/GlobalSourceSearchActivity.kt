@@ -40,7 +40,7 @@ class GlobalSourceSearchActivity : BaseActivity() {
                     searchInput = viewModel.searchInput.value,
                     listSources = viewModel.sourcesResults,
                     onBookClick = { navigationRoutes.chapters(this, it).let(::startActivity) },
-                    onPressBack = ::onBackPressed,
+                    onPressBack = { @Suppress("DEPRECATION") onBackPressed() },
                     onSearchInputChange = viewModel.searchInput::value::set,
                     onSearchInputSubmit = viewModel::search,
                 )

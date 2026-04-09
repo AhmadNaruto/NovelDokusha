@@ -170,6 +170,11 @@ class AppPreferences @Inject constructor(
             override var value by SharedPreference_Boolean(name, preferences, false)
         }
 
+    val TRANSLATION_PREFER_OFFLINE =
+        object : Preference<Boolean>("TRANSLATION_PREFER_OFFLINE") {
+            override var value by SharedPreference_Boolean(name, preferences, false)
+        }
+
 
     @Deprecated("Removed", level = DeprecationLevel.HIDDEN)
     val LOCAL_SOURCES_URI_DIRECTORIES =
@@ -184,6 +189,19 @@ class AppPreferences @Inject constructor(
             preferences,
             TernaryState.Active
         ) { enumValueOf(it) }
+    }
+
+    // Cloudflare / WebView bypass settings
+    val CLOUDFLARE_CHALLENGE_TIMEOUT_SECONDS =
+        object : Preference<Int>("CLOUDFLARE_CHALLENGE_TIMEOUT_SECONDS") {
+            override var value by SharedPreference_Int(name, preferences, 120)
+        }
+    val CLOUDFLARE_COOKIE_PERSISTENCE_ENABLED =
+        object : Preference<Boolean>("CLOUDFLARE_COOKIE_PERSISTENCE_ENABLED") {
+            override var value by SharedPreference_Boolean(name, preferences, true)
+        }
+    val NETWORK_USER_AGENT = object : Preference<String>("NETWORK_USER_AGENT") {
+        override var value by SharedPreference_String(name, preferences, "")
     }
 
     abstract inner class Preference<T>(val name: String) {

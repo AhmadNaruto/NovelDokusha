@@ -50,7 +50,7 @@ class ChaptersActivity : BaseActivity() {
                     onLibraryToggle = viewModel::toggleBookmark,
                     onSearchBookInDatabase = ::searchBookInDatabase,
                     onResumeReading = ::onOpenLastActiveChapter,
-                    onPressBack = ::onBackPressed,
+                    onPressBack = { @Suppress("DEPRECATION") onBackPressed() },
                     onSelectedDeleteDownloads = viewModel::deleteDownloadsSelected,
                     onSelectedDownload = viewModel::downloadSelected,
                     onSelectedSetRead = viewModel::setAsReadSelected,
@@ -69,7 +69,9 @@ class ChaptersActivity : BaseActivity() {
                     onCoverLongClick = { searchBookInDatabase(input = viewModel.bookTitle) },
                     onChangeCover = onDoAskForImage { viewModel.saveImageAsCover(it) },
                     onOpenInBrowser = { navigationRoutes.webView(this, url = it).let(::startActivity) },
-                    onGlobalSearchClick = { navigationRoutes.globalSearch(this, text = it).let(::startActivity) }
+                    onGlobalSearchClick = { navigationRoutes.globalSearch(this, text = it).let(::startActivity) },
+                    onCancelDownloads = viewModel::cancelDownloads,
+                    onClearDownloadProgress = viewModel::clearDownloadProgress
                 )
             }
         }

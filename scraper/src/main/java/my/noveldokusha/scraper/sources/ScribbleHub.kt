@@ -8,8 +8,8 @@ import my.noveldokusha.core.Response
 import my.noveldokusha.network.NetworkClient
 import my.noveldokusha.network.add
 import my.noveldokusha.network.addPath
-import my.noveldokusha.network.getRequest      // ← Tambahkan
-import my.noveldokusha.network.postPayload     // ← Tambahkan
+import my.noveldokusha.network.getRequest
+import my.noveldokusha.network.postPayload
 import my.noveldokusha.network.toDocument
 import my.noveldokusha.network.toUrlBuilderSafe
 import my.noveldokusha.network.tryConnect
@@ -18,7 +18,6 @@ import my.noveldokusha.scraper.SourceInterface
 import my.noveldokusha.scraper.TextExtractor
 import my.noveldokusha.scraper.domain.BookResult
 import my.noveldokusha.scraper.domain.ChapterResult
-import okhttp3.Request  // ← Masih perlu untuk .build()
 import org.jsoup.nodes.Document
 
 class ScribbleHub(

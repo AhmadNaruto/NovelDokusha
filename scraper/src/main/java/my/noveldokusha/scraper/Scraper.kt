@@ -1,5 +1,6 @@
 package my.noveldokusha.scraper
 
+import my.noveldokusha.core.LanguageCode
 import my.noveldokusha.network.NetworkClient
 import my.noveldokusha.scraper.databases.BakaUpdates
 import my.noveldokusha.scraper.databases.NovelUpdates
@@ -33,7 +34,6 @@ import my.noveldokusha.scraper.sources.NoBadNovel
 import my.noveldokusha.scraper.sources.FanMTL
 import my.noveldokusha.scraper.sources.LNMTL
 import my.noveldokusha.scraper.sources.WtrLab
-import my.noveldokusha.scraper.sources.Jaomix
 import my.noveldokusha.scraper.sources.Shuba69
 import my.noveldokusha.scraper.sources.UuKanshu
 import my.noveldokusha.scraper.sources.Ddxss
@@ -48,54 +48,64 @@ class Scraper @Inject constructor(
     networkClient: NetworkClient,
     localSource: LocalSource
 ) {
-    val databasesList = setOf(
-        NovelUpdates(networkClient),
-        BakaUpdates(networkClient)
-    )
+    private val db by lazy {
+        setOf(
+            NovelUpdates(networkClient),
+            BakaUpdates(networkClient)
+        )
+    }
+    val databasesList: Set<DatabaseInterface>
+        get() = db
 
-    val sourcesList = setOf(
-        localSource,
-        ReadNovelFull(networkClient),
-        RoyalRoad(networkClient),
-        my.noveldokusha.scraper.sources.NovelUpdates(networkClient),
-        Reddit(),
-        AT(),
-        Sousetsuka(),
-        Saikai(networkClient),
-        BoxNovel(networkClient),
-        NovelHall(networkClient),
-        WuxiaWorld(networkClient),
-        IndoWebnovel(networkClient),
-        Shuba69(networkClient),
-        UuKanshu(networkClient),
-        Ddxss(networkClient),
-        LeYueDu(networkClient),
-        Twkan(networkClient),
-        Ttkan(networkClient),
-        BacaLightnovel(networkClient),
-        SakuraNovel(networkClient),
-        MeioNovel(networkClient),
-        MoreNovel(networkClient),
-        Novelku(networkClient),
-        WbNovel(networkClient),
-        NovelBin(networkClient),
-        ScribbleHub(networkClient),
-        FreeWebNovel(networkClient),
-        NovelFull(networkClient),
-        AllNovel(networkClient),
-        NovelBinCom(networkClient),
-        ReadMTL(networkClient),
-        NewNovel(networkClient),
-        SonicMTL(networkClient),
-        NoBadNovel(networkClient),
-        FanMTL(networkClient),
-        LNMTL(networkClient),
-        WtrLab(networkClient),
-        Jaomix(networkClient),
-    )
+    // Lazy-initialized sources — only created when first accessed
+    private val src by lazy {
+        setOf<SourceInterface>(
+            localSource,
+            ReadNovelFull(networkClient),
+            RoyalRoad(networkClient),
+            my.noveldokusha.scraper.sources.NovelUpdates(networkClient),
+            Reddit(),
+            AT(),
+            Sousetsuka(),
+            Saikai(networkClient),
+            BoxNovel(networkClient),
+            NovelHall(networkClient),
+            WuxiaWorld(networkClient),
+            IndoWebnovel(networkClient),
+            Shuba69(networkClient),
+            UuKanshu(networkClient),
+            Ddxss(networkClient),
+            LeYueDu(networkClient),
+            Twkan(networkClient),
+            Ttkan(networkClient),
+            BacaLightnovel(networkClient),
+            SakuraNovel(networkClient),
+            MeioNovel(networkClient),
+            MoreNovel(networkClient),
+            Novelku(networkClient),
+            WbNovel(networkClient),
+            NovelBin(networkClient),
+            ScribbleHub(networkClient),
+            FreeWebNovel(networkClient),
+            NovelFull(networkClient),
+            AllNovel(networkClient),
+            NovelBinCom(networkClient),
+            ReadMTL(networkClient),
+            NewNovel(networkClient),
+            SonicMTL(networkClient),
+            NoBadNovel(networkClient),
+            FanMTL(networkClient),
+            LNMTL(networkClient),
+            WtrLab(networkClient),
+        )
+    }
+    val sourcesList: Set<SourceInterface>
+        get() = src
 
-    val sourcesCatalogsList = sourcesList.filterIsInstance<SourceInterface.Catalog>()
-    val sourcesCatalogsLanguagesList = sourcesCatalogsList.mapNotNull { it.language }.toSet()
+    val sourcesCatalogsList: List<SourceInterface.Catalog>
+        get() = sourcesList.filterIsInstance<SourceInterface.Catalog>()
+    val sourcesCatalogsLanguagesList: Set<LanguageCode>
+        get() = sourcesCatalogsList.mapNotNull { it.language }.toSet()
 
     private fun String.isCompatibleWithBaseUrl(baseUrl: String): Boolean {
         val normalizedUrl = if (this.endsWith("/")) this else "$this/"

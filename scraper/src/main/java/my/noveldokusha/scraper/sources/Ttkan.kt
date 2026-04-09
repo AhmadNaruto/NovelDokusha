@@ -110,7 +110,7 @@ class Ttkan(
             
             val response = networkClient.get(apiUrl)
             val jsonText = response.body.string()
-            
+
             // Parse the JSON response manually to extract chapters
             // Format: {"items":[{"chapter_name":"第1章 ...","chapter_id":1},...]}
             val chapters = mutableListOf<ChapterResult>()

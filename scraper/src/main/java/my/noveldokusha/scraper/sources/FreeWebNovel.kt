@@ -15,7 +15,6 @@ import my.noveldokusha.scraper.SourceInterface
 import my.noveldokusha.scraper.TextExtractor
 import my.noveldokusha.scraper.domain.BookResult
 import my.noveldokusha.scraper.domain.ChapterResult
-import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
 
@@ -117,16 +116,16 @@ class FreeWebNovel(
         index: Int,
         input: String
     ): Response<PagedList<BookResult>> =
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.Default) {
             tryConnect {
                 if (input.isBlank() || index > 0)
                     return@tryConnect PagedList.createEmpty(index = index)
-                val url = "https://freewebnovel.com/search"
-                val doc: Document = Jsoup.connect(url)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36")
-                    .data("searchkey", input)
-                    .timeout(10000)
-                    .post()
+                val url = "$baseUrl/search"
+                val request = postRequest(url)
+                    .postPayload {
+                        add("searchkey", input)
+                    }
+                val doc = networkClient.call(request).toDocument()
                 val books = doc.select(".ul-list1 .li-row")
                     .mapNotNull { element ->
                         val link = element.selectFirst(".tit a") ?: return@mapNotNull null
