@@ -7,14 +7,17 @@ import androidx.room.RoomDatabase
 import androidx.room.withTransaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import my.noveldokusha.feature.local_database.DAOs.CategoryDao
 import my.noveldokusha.feature.local_database.DAOs.ChapterBodyDao
 import my.noveldokusha.feature.local_database.DAOs.ChapterDao
 import my.noveldokusha.feature.local_database.DAOs.ChapterTranslationDao
 import my.noveldokusha.feature.local_database.DAOs.LibraryDao
 import my.noveldokusha.feature.local_database.tables.Book
+import my.noveldokusha.feature.local_database.tables.BookCategory
 import my.noveldokusha.feature.local_database.tables.Chapter
 import my.noveldokusha.feature.local_database.tables.ChapterBody
 import my.noveldokusha.feature.local_database.tables.ChapterTranslation
+import my.noveldokusha.feature.local_database.tables.LibraryCategory
 import java.io.InputStream
 
 
@@ -23,6 +26,7 @@ interface AppDatabase {
     fun chapterDao(): ChapterDao
     fun chapterBodyDao(): ChapterBodyDao
     fun chapterTranslationDao(): ChapterTranslationDao
+    fun categoryDao(): CategoryDao
     val name: String
 
     fun closeDatabase()
@@ -60,9 +64,11 @@ interface AppDatabase {
         Book::class,
         Chapter::class,
         ChapterBody::class,
-        ChapterTranslation::class
+        ChapterTranslation::class,
+        LibraryCategory::class,
+        BookCategory::class
     ],
-    version = 9,
+    version = 10,
     exportSchema = false
 )
 internal abstract class AppRoomDatabase : RoomDatabase(), AppDatabase {
@@ -70,6 +76,7 @@ internal abstract class AppRoomDatabase : RoomDatabase(), AppDatabase {
     abstract override fun chapterDao(): ChapterDao
     abstract override fun chapterBodyDao(): ChapterBodyDao
     abstract override fun chapterTranslationDao(): ChapterTranslationDao
+    abstract override fun categoryDao(): CategoryDao
 
     override lateinit var name: String
 

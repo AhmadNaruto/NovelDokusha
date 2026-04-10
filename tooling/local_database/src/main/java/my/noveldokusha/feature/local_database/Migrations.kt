@@ -38,8 +38,41 @@ internal fun databaseMigrations() = arrayOf(
             )
         """)
         it.execSQL("""
-            CREATE INDEX IF NOT EXISTS index_ChapterTranslation_chapterUrl_sourceLang_targetLang 
+            CREATE INDEX IF NOT EXISTS index_ChapterTranslation_chapterUrl_sourceLang_targetLang
             ON ChapterTranslation (chapterUrl, sourceLang, targetLang)
+        """)
+    },
+    migration(9) {
+        // Create library_categories table
+        it.execSQL("""
+            CREATE TABLE IF NOT EXISTS library_categories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                name TEXT NOT NULL,
+                colorIndex INTEGER NOT NULL DEFAULT 0,
+                createdAt INTEGER NOT NULL DEFAULT 0
+            )
+        """)
+        
+        // Create book_categories mapping table
+        it.execSQL("""
+            CREATE TABLE IF NOT EXISTS book_categories (
+                bookUrl TEXT NOT NULL,
+                categoryId INTEGER NOT NULL,
+                PRIMARY KEY (bookUrl, categoryId),
+                FOREIGN KEY (bookUrl) REFERENCES Book(url) ON DELETE CASCADE,
+                FOREIGN KEY (categoryId) REFERENCES library_categories(id) ON DELETE CASCADE
+            )
+        """)
+        it.execSQL("CREATE INDEX IF NOT EXISTS index_book_categories_bookUrl ON book_categories (bookUrl)")
+        it.execSQL("CREATE INDEX IF NOT EXISTS index_book_categories_categoryId ON book_categories (categoryId)")
+        
+        // Migrate existing completed books to a "Completed" category
+        it.execSQL("INSERT OR IGNORE INTO library_categories (name, colorIndex, createdAt) VALUES ('Completed', 0, strftime('%s', 'now') * 1000)")
+        it.execSQL("""
+            INSERT OR IGNORE INTO book_categories (bookUrl, categoryId)
+            SELECT url, (SELECT id FROM library_categories WHERE name = 'Completed')
+            FROM Book
+            WHERE completed = 1
         """)
     },
 )
