@@ -18,7 +18,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.outlined.ColorLens
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.Translate
@@ -109,13 +108,16 @@ internal fun ReaderScreen(
                     ) {
                         TopAppBar(
                             colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = MaterialTheme.colorApp.tintedSurface,
-                                scrolledContainerColor = MaterialTheme.colorApp.tintedSurface,
+                                containerColor = Color.Transparent,
+                                scrolledContainerColor = MaterialTheme.colorApp.tintedSurface.copy(alpha = 0.95f),
+                                titleContentColor = MaterialTheme.colorScheme.onSurface,
                             ),
                             title = {
                                 Text(
                                     text = state.readerInfo.chapterTitle.value,
-                                    style = MaterialTheme.typography.titleMedium,
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+                                    ),
                                     maxLines = 2,
                                     overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier.animateContentSize()
@@ -188,7 +190,7 @@ internal fun ReaderScreen(
                         modifier = Modifier
                             .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                             .animateContentSize(),
-                        containerColor = MaterialTheme.colorApp.tintedSurface,
+                        containerColor = MaterialTheme.colorApp.tintedSurface.copy(alpha = 0.98f),
                     ) {
                         if (state.settings.liveTranslation.isAvailable) SettingIconItem(
                             currentType = state.settings.selectedSetting.value,
@@ -196,13 +198,6 @@ internal fun ReaderScreen(
                             onClick = toggleOrSet,
                             icon = Icons.Outlined.Translate,
                             textId = R.string.translator,
-                        )
-                        SettingIconItem(
-                            currentType = state.settings.selectedSetting.value,
-                            settingType = Type.TextToSpeech,
-                            onClick = toggleOrSet,
-                            icon = Icons.Filled.RecordVoiceOver,
-                            textId = R.string.voice_reader,
                         )
                         SettingIconItem(
                             currentType = state.settings.selectedSetting.value,
