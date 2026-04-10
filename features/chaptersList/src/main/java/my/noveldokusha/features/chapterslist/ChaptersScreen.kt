@@ -34,6 +34,7 @@ import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.PublishedWithChanges
 import androidx.compose.material.icons.outlined.SelectAll
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -56,21 +57,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Snackbar
 import androidx.compose.ui.unit.dp
 import my.nanihadesuka.compose.InternalLazyColumnScrollbar
-import my.noveldoksuha.coreui.theme.ColorAccent
-import my.noveldoksuha.coreui.theme.ColorLike
-import my.noveldoksuha.coreui.theme.ColorNotice
 import my.noveldoksuha.coreui.theme.colorApp
 import my.noveldoksuha.coreui.theme.isAtTop
-import my.noveldoksuha.coreui.theme.textPadding
 import my.noveldokusha.chapterslist.R
 import my.noveldokusha.core.isLocalUri
 import my.noveldokusha.feature.local_database.ChapterWithContext
@@ -119,7 +119,7 @@ internal fun ChaptersScreen(
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.primary,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             val isAtTop by lazyListState.isAtTop(threshold = 40.dp)
             val alpha by animateFloatAsState(targetValue = if (isAtTop) 0f else 1f, label = "")
@@ -142,10 +142,18 @@ internal fun ChaptersScreen(
                         title = {
                             Text(
                                 text = state.book.value.title,
-                                style = MaterialTheme.typography.headlineSmall,
+                                style = MaterialTheme.typography.headlineSmall.copy(
+                                    fontWeight = FontWeight.SemiBold,
+                                    brush = Brush.linearGradient(
+                                        colors = listOf(
+                                            MaterialTheme.colorScheme.primary,
+                                            MaterialTheme.colorScheme.secondary
+                                        )
+                                    )
+                                ),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
-                                color = titleColor
+                                color = if (alpha > 0.5f) titleColor else MaterialTheme.colorScheme.onSurface
                             )
                         },
                         navigationIcon = {
@@ -162,7 +170,7 @@ internal fun ChaptersScreen(
                                 Icon(
                                     if (state.book.value.inLibrary) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
                                     stringResource(R.string.open_the_web_view),
-                                    tint = ColorLike
+                                    tint = MaterialTheme.colorScheme.error
                                 )
                             }
                             IconButton(
@@ -171,7 +179,7 @@ internal fun ChaptersScreen(
                                 Icon(
                                     Icons.Filled.FilterList,
                                     stringResource(R.string.filter),
-                                    tint = ColorNotice
+                                    tint = MaterialTheme.colorScheme.tertiary
                                 )
                             }
                             IconButton(onClick = { showDropDown = !showDropDown }) {
@@ -329,28 +337,26 @@ internal fun ChaptersScreen(
             }
         },
         floatingActionButton = {
-            FloatingActionButton(
-                containerColor = ColorAccent,
-                onClick = onResumeReading
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.textPadding()
-                ) {
+            ExtendedFloatingActionButton(
+                onClick = onResumeReading,
+                icon = {
                     Icon(
                         Icons.Filled.PlayArrow,
-                        contentDescription = stringResource(id = R.string.open_last_read_chapter),
-                        tint = Color.White
+                        contentDescription = stringResource(id = R.string.open_last_read_chapter)
                     )
-                    AnimatedVisibility(visible = lazyListState.isAtTop(threshold = 100.dp).value) {
-                        Text(
-                            text = stringResource(id = R.string.read),
-                            modifier = Modifier.padding(end = 8.dp)
+                },
+                text = {
+                    Text(
+                        text = stringResource(id = R.string.read),
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Medium
                         )
-                    }
-                }
-            }
+                    )
+                },
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                expanded = lazyListState.isAtTop(threshold = 100.dp).value
+            )
         }
     )
 
