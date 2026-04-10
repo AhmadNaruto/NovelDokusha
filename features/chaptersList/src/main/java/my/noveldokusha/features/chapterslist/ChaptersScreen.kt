@@ -183,7 +183,6 @@ internal fun ChaptersScreen(
                                     expanded = showDropDown,
                                     onDismissRequest = { showDropDown = false }) {
                                     ChaptersDropDown(
-                                        isLocalSource = state.isLocalSource.value,
                                         openInBrowser = {
                                             if (!state.book.value.url.isLocalUri) {
                                                 onOpenInBrowser(state.book.value.url)
@@ -279,20 +278,17 @@ internal fun ChaptersScreen(
                         horizontalArrangement = Arrangement.Center,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-
-                        if (!state.isLocalSource.value) {
-                            IconButton(onClick = onSelectedDeleteDownloads) {
-                                Icon(
-                                    Icons.Outlined.Delete,
-                                    stringResource(id = R.string.remove_selected_chapters_downloads)
-                                )
-                            }
-                            IconButton(onClick = onSelectedDownload) {
-                                Icon(
-                                    Icons.Outlined.CloudDownload,
-                                    stringResource(id = R.string.download_selected_chapters)
-                                )
-                            }
+                        IconButton(onClick = onSelectedDeleteDownloads) {
+                            Icon(
+                                Icons.Outlined.Delete,
+                                stringResource(id = R.string.remove_selected_chapters_downloads)
+                            )
+                        }
+                        IconButton(onClick = onSelectedDownload) {
+                            Icon(
+                                Icons.Outlined.CloudDownload,
+                                stringResource(id = R.string.download_selected_chapters)
+                            )
                         }
                         if (areSelectedChaptersRead) {
                             IconButton(onClick = onSelectedSetUnread) {

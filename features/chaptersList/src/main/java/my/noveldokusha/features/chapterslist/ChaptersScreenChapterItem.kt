@@ -36,7 +36,6 @@ import my.noveldokusha.feature.local_database.tables.Chapter
 internal fun ChaptersScreenChapterItem(
     chapterWithContext: ChapterWithContext,
     selected: Boolean,
-    isLocalSource: Boolean,
     modifier: Modifier = Modifier,
     onLongClick: () -> Unit,
     onClick: () -> Unit,
@@ -65,19 +64,17 @@ internal fun ChaptersScreenChapterItem(
                 }
             }
         },
-        trailingContent = if (isLocalSource) null else {
-            {
-                AnimatedTransition(
-                    targetState = chapterWithContext.downloaded,
-                    transitionSpec = { fadeIn() togetherWith fadeOut() }
-                ) { downloaded ->
-                    IconButton(onClick = onDownload) {
-                        Icon(
-                            if (downloaded) Icons.Filled.CloudDownload
-                            else Icons.Outlined.CloudDownload,
-                            null
-                        )
-                    }
+        trailingContent = {
+            AnimatedTransition(
+                targetState = chapterWithContext.downloaded,
+                transitionSpec = { fadeIn() togetherWith fadeOut() }
+            ) { downloaded ->
+                IconButton(onClick = onDownload) {
+                    Icon(
+                        if (downloaded) Icons.Filled.CloudDownload
+                        else Icons.Outlined.CloudDownload,
+                        null
+                    )
                 }
             }
         },
@@ -106,7 +103,6 @@ private fun PreviewView(
         ChaptersScreenChapterItem(
             chapterWithContext = previewProviderState.chapterWithContext,
             selected = previewProviderState.selected,
-            isLocalSource = false,
             onLongClick = {},
             onClick = {},
             onDownload = {}

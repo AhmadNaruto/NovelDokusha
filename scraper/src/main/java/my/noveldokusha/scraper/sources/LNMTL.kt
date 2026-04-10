@@ -13,6 +13,7 @@ import my.noveldokusha.scraper.SourceInterface
 import my.noveldokusha.scraper.TextExtractor
 import my.noveldokusha.scraper.domain.BookResult
 import my.noveldokusha.scraper.domain.ChapterResult
+import my.noveldokusha.scraper.toText
 import org.jsoup.nodes.Document
 
 /**
@@ -37,7 +38,7 @@ class LNMTL(
 
     override suspend fun getChapterText(doc: Document): String = withContext(Dispatchers.Default) {
         doc.select(".chapter-body .translated").joinToString("\n") { element ->
-            TextExtractor.get(element)
+            element.toText()
                 .replace("\u00ad", "")
                 .replace(Regex("\u201e[, ]*"), "&ldquo;")
                 .replace(Regex("\u201d[, ]*"), "&rdquo;")

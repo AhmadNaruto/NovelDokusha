@@ -18,6 +18,7 @@ import my.noveldokusha.scraper.SourceInterface
 import my.noveldokusha.scraper.TextExtractor
 import my.noveldokusha.scraper.domain.BookResult
 import my.noveldokusha.scraper.domain.ChapterResult
+import my.noveldokusha.scraper.toMarkdown
 import org.jsoup.nodes.Document
 
 class Novelku(private val networkClient: NetworkClient) : SourceInterface.Catalog {
@@ -67,7 +68,7 @@ class Novelku(private val networkClient: NetworkClient) : SourceInterface.Catalo
         withContext(Dispatchers.Default) {
             doc.selectFirst(".read-container .text-left")!!.let {
                 it.select("script").remove()
-                TextExtractor.get(it)
+                it.toMarkdown()
             }
         }
 

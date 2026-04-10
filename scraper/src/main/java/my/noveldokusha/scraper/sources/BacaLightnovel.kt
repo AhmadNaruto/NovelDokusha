@@ -17,6 +17,7 @@ import my.noveldokusha.scraper.SourceInterface
 import my.noveldokusha.scraper.TextExtractor
 import my.noveldokusha.scraper.domain.BookResult
 import my.noveldokusha.scraper.domain.ChapterResult
+import my.noveldokusha.scraper.toMarkdown
 import org.jsoup.nodes.Document
 
 class BacaLightnovel(private val networkClient: NetworkClient) : SourceInterface.Catalog {
@@ -27,7 +28,6 @@ class BacaLightnovel(private val networkClient: NetworkClient) : SourceInterface
     override val iconUrl =
         "https://bacalightnovel.co/wp-content/uploads/2022/09/cropped-fav-32x32.png"
     override val language = LanguageCode.INDONESIAN
-
     private suspend fun getPagesList(
         index: Int,
         url: String,
@@ -59,9 +59,7 @@ class BacaLightnovel(private val networkClient: NetworkClient) : SourceInterface
 
     override suspend fun getChapterText(doc: Document): String =
         withContext(Dispatchers.Default) {
-            doc.selectFirst("div .epcontent[itemprop=text] .text-left")!!.let {
-                TextExtractor.get(it)
-            }
+            doc.selectFirst("div .epcontent[itemprop=text] .text-left")!!.toMarkdown()
         }
 
     override suspend fun getBookCoverImageUrl(bookUrl: String): Response<String?> =

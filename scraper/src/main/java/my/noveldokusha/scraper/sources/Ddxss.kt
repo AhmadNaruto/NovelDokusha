@@ -13,6 +13,7 @@ import my.noveldokusha.scraper.SourceInterface
 import my.noveldokusha.scraper.TextExtractor
 import my.noveldokusha.scraper.domain.BookResult
 import my.noveldokusha.scraper.domain.ChapterResult
+import my.noveldokusha.scraper.toText
 import org.jsoup.nodes.Document
 import java.net.URI
 
@@ -42,8 +43,8 @@ class Ddxss(
 
     override suspend fun getChapterText(doc: Document): String = withContext(Dispatchers.Default) {
         val content = doc.selectFirst("div#chaptercontent")
-        content?.let { 
-            val text = TextExtractor.get(it)
+        content?.let {
+            val text = it.toText()
             // Remove promotional text patterns
             text.replace(Regex("请收藏本站：.*"), "")
                 .replace(Regex("顶点小说手机版：.*"), "")

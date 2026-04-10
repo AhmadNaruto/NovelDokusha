@@ -6,6 +6,12 @@ plugins {
 
 android {
     namespace = "my.noveldokusha.scraper"
+
+    sourceSets {
+        getByName("main") {
+            jniLibs.srcDirs("src/main/jniLibs")
+        }
+    }
 }
 
 dependencies {
@@ -17,5 +23,7 @@ dependencies {
     implementation(libs.jsoup)
     implementation(libs.gson)
     implementation(libs.okhttp)
+    
+    testImplementation(libs.test.junit)
     androidTestImplementation(libs.test.androidx.espresso.core)
 }

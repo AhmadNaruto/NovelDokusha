@@ -12,7 +12,6 @@ dependencies {
     implementation(projects.networking)
     implementation(projects.scraper)
     implementation(projects.tooling.localDatabase)
-    implementation(projects.tooling.epubParser)
 
     implementation(libs.jsoup)
     implementation(libs.readability4j)

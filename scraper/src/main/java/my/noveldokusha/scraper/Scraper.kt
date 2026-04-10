@@ -8,7 +8,6 @@ import my.noveldokusha.scraper.sources.AT
 import my.noveldokusha.scraper.sources.BacaLightnovel
 import my.noveldokusha.scraper.sources.BoxNovel
 import my.noveldokusha.scraper.sources.IndoWebnovel
-import my.noveldokusha.scraper.sources.LocalSource
 import my.noveldokusha.scraper.sources.MeioNovel
 import my.noveldokusha.scraper.sources.MoreNovel
 import my.noveldokusha.scraper.sources.NovelBin
@@ -46,7 +45,6 @@ import javax.inject.Singleton
 @Singleton
 class Scraper @Inject constructor(
     networkClient: NetworkClient,
-    localSource: LocalSource
 ) {
     private val db by lazy {
         setOf(
@@ -60,7 +58,6 @@ class Scraper @Inject constructor(
     // Lazy-initialized sources — only created when first accessed
     private val src by lazy {
         setOf<SourceInterface>(
-            localSource,
             ReadNovelFull(networkClient),
             RoyalRoad(networkClient),
             my.noveldokusha.scraper.sources.NovelUpdates(networkClient),

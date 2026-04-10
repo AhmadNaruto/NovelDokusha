@@ -17,6 +17,7 @@ import my.noveldokusha.scraper.SourceInterface
 import my.noveldokusha.scraper.TextExtractor
 import my.noveldokusha.scraper.domain.BookResult
 import my.noveldokusha.scraper.domain.ChapterResult
+import my.noveldokusha.scraper.toText
 import org.jsoup.nodes.Document
 import java.net.URI
 
@@ -56,7 +57,7 @@ class RoyalRoad(
             it.select(".ads-title").remove()
             it.select(".hidden").remove()
             hiddenClasses.forEach { hc -> it.select(hc).remove() }
-            TextExtractor.get(it)
+            it.toText()
         }
     }
 

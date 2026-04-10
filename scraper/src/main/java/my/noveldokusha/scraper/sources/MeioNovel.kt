@@ -18,6 +18,7 @@ import my.noveldokusha.scraper.SourceInterface
 import my.noveldokusha.scraper.TextExtractor
 import my.noveldokusha.scraper.domain.BookResult
 import my.noveldokusha.scraper.domain.ChapterResult
+import my.noveldokusha.scraper.toMarkdown
 import org.jsoup.nodes.Document
 
 class MeioNovel(private val networkClient: NetworkClient) : SourceInterface.Catalog {
@@ -66,7 +67,7 @@ class MeioNovel(private val networkClient: NetworkClient) : SourceInterface.Cata
         withContext(Dispatchers.Default) {
             doc.selectFirst(".reading-content")!!.let {
                 it.selectFirst("h1")?.remove()
-                TextExtractor.get(it)
+                it.toMarkdown()
             }
         }
 

@@ -12,7 +12,7 @@ import my.noveldokusha.network.addPath
 import my.noveldokusha.network.toDocument
 import my.noveldokusha.network.toUrlBuilderSafe
 import my.noveldokusha.network.tryConnect
-import my.noveldokusha.scraper.TextExtractor
+import my.noveldokusha.scraper.toText
 import my.noveldokusha.scraper.domain.ChapterResult
 import my.noveldokusha.scraper.templates.BaseNovelFullScraper
 import org.jsoup.nodes.Document
@@ -114,7 +114,7 @@ abstract class NovelFullLike(
                 element.select(".ads").remove()
                 element.select("div:contains($adDomainString)").remove()
                 element.select("p:contains(If you find any errors)").remove()
-                TextExtractor.get(element)
+                element.toText()
             } ?: ""
         }
 }

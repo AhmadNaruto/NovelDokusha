@@ -15,6 +15,7 @@ import my.noveldokusha.scraper.SourceInterface
 import my.noveldokusha.scraper.TextExtractor
 import my.noveldokusha.scraper.domain.BookResult
 import my.noveldokusha.scraper.domain.ChapterResult
+import my.noveldokusha.scraper.toText
 import org.jsoup.nodes.Document
 import java.net.URI
 import java.net.URLEncoder
@@ -45,13 +46,13 @@ class LeYueDu(
 
     override suspend fun getChapterText(doc: Document): String = withContext(Dispatchers.Default) {
         val content = doc.selectFirst("div.txtnav")
-        content?.let { 
+        content?.let {
             // Remove unwanted elements
             it.select("h1").remove()
             it.select("div.txtinfo").remove()
             it.select("div#txtright").remove()
             it.select("div.baocuo").remove()
-            TextExtractor.get(it)
+            it.toText()
         } ?: ""
     }
 

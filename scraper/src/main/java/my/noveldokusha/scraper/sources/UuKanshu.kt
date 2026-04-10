@@ -15,6 +15,7 @@ import my.noveldokusha.scraper.SourceInterface
 import my.noveldokusha.scraper.TextExtractor
 import my.noveldokusha.scraper.domain.BookResult
 import my.noveldokusha.scraper.domain.ChapterResult
+import my.noveldokusha.scraper.toText
 import org.jsoup.nodes.Document
 import java.net.URI
 
@@ -44,9 +45,9 @@ class UuKanshu(
 
     override suspend fun getChapterText(doc: Document): String = withContext(Dispatchers.Default) {
         val content = doc.selectFirst("div#contentbox")
-        content?.let { 
+        content?.let {
             // Format text: remove ads and extra whitespace
-            val text = TextExtractor.get(it)
+            val text = it.toText()
             text.replace(Regex("UU看书\\s*www\\.uukanshu\\.net"), "")
                 .replace(Regex("一秒记住【UU看书\\s*www\\.uukanshu\\.net】，精彩小说无弹窗免费阅读！"), "")
                 .trim()

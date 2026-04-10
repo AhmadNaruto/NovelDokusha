@@ -15,6 +15,7 @@ import my.noveldokusha.scraper.SourceInterface
 import my.noveldokusha.scraper.TextExtractor
 import my.noveldokusha.scraper.domain.BookResult
 import my.noveldokusha.scraper.domain.ChapterResult
+import my.noveldokusha.scraper.toText
 import org.jsoup.nodes.Document
 
 /**
@@ -42,7 +43,7 @@ class FanMTL(
             element.select("script").remove()
             element.select("div[align=\"center\"]").remove()
             element.select(".ads").remove()
-            TextExtractor.get(element)
+            element.toText()
         } ?: ""
     }
 

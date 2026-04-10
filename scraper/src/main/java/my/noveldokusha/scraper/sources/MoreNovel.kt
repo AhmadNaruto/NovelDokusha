@@ -7,6 +7,7 @@ import my.noveldokusha.network.NetworkClient
 import my.noveldokusha.scraper.R
 import my.noveldokusha.scraper.TextExtractor
 import my.noveldokusha.scraper.templates.BaseMadaraScraper
+import my.noveldokusha.scraper.toMarkdown
 import org.jsoup.nodes.Document
 
 class MoreNovel(
@@ -31,11 +32,11 @@ class MoreNovel(
     override suspend fun getChapterTitle(doc: Document): String = 
         doc.selectFirst("#chapter-heading")?.text() ?: ""
     
-    override suspend fun getChapterText(doc: Document): String = 
+    override suspend fun getChapterText(doc: Document): String =
         withContext(Dispatchers.Default) {
             doc.selectFirst(".reading-content .text-left")?.let {
                 it.select("div").remove()
-                TextExtractor.get(it)
+                it.toMarkdown()
             } ?: ""
         }
 }

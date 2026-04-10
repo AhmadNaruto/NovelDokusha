@@ -17,7 +17,7 @@ import my.noveldokusha.network.tryConnect
 import my.noveldokusha.network.ifCase
 import my.noveldokusha.scraper.R
 import my.noveldokusha.scraper.SourceInterface
-import my.noveldokusha.scraper.TextExtractor
+import my.noveldokusha.scraper.toText
 import okhttp3.Headers
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
@@ -69,7 +69,7 @@ class NovelBin(private val networkClient: NetworkClient) : SourceInterface.Catal
 
     override suspend fun getChapterText(doc: Document): String =
         withContext(Dispatchers.Default) {
-            doc.selectFirst(selectChapterContent)?.let { TextExtractor.get(it)
+            doc.selectFirst(selectChapterContent)?.let { it.toText()
             } ?: ""
         }
 

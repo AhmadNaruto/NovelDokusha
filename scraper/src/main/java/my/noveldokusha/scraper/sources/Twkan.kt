@@ -15,6 +15,7 @@ import my.noveldokusha.scraper.SourceInterface
 import my.noveldokusha.scraper.TextExtractor
 import my.noveldokusha.scraper.domain.BookResult
 import my.noveldokusha.scraper.domain.ChapterResult
+import my.noveldokusha.scraper.toText
 import org.jsoup.nodes.Document
 import java.net.URI
 
@@ -45,7 +46,7 @@ class Twkan(
         doc.selectFirst("#txtcontent0")?.let { content ->
             // Remove ads and scripts
             content.select("script, .txtad").remove()
-            TextExtractor.get(content)
+            content.toText()
         } ?: ""
     }
 

@@ -5,7 +5,7 @@ import kotlinx.coroutines.withContext
 import my.noveldokusha.network.toUrlBuilder
 import my.noveldokusha.scraper.R
 import my.noveldokusha.scraper.SourceInterface
-import my.noveldokusha.scraper.TextExtractor
+import my.noveldokusha.scraper.toText
 import org.jsoup.nodes.Document
 
 /**
@@ -39,7 +39,7 @@ class Reddit : SourceInterface.Base {
             .let {
                 it.select("table").remove()
                 it.select("blockquote").remove()
-                TextExtractor.get(it)
+                it.toText()
             }
     }
 }

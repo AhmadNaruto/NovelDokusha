@@ -15,7 +15,6 @@ sealed interface SourceInterface {
     @get:StringRes
     val nameStrId: Int
     val baseUrl: String
-    val isLocalSource: Boolean get() = true
     val requiresLogin: Boolean get() = false
     val charset: String get() = "UTF-8"
 

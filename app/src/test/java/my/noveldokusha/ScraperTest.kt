@@ -2,7 +2,6 @@ package my.noveldokusha
 
 import my.noveldokusha.network.NetworkClient
 import my.noveldokusha.scraper.Scraper
-import my.noveldokusha.tooling.local_source.AppLocalSources
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -19,7 +18,6 @@ class ScraperTest {
 
     private val sut = Scraper(
         networkClient = networkClient,
-        localSource = AppLocalSources(mock(), mock(), mock())
     )
 
     @Before

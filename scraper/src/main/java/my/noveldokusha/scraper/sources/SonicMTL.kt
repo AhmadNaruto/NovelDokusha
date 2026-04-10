@@ -5,7 +5,7 @@ import kotlinx.coroutines.withContext
 import my.noveldokusha.core.LanguageCode
 import my.noveldokusha.network.NetworkClient
 import my.noveldokusha.scraper.R
-import my.noveldokusha.scraper.TextExtractor
+import my.noveldokusha.scraper.toText
 import my.noveldokusha.scraper.templates.BaseMadaraScraper
 import org.jsoup.nodes.Document
 
@@ -29,7 +29,7 @@ class SonicMTL(
             element.select(".body-top-ads").remove()
             element.select(".before-content-ad").remove()
             element.select(".autors-widget").remove()
-            TextExtractor.get(element)
+            element.toText()
         } ?: ""
     }
 }

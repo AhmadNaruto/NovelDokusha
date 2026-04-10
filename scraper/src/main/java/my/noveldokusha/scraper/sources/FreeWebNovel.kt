@@ -15,6 +15,7 @@ import my.noveldokusha.scraper.SourceInterface
 import my.noveldokusha.scraper.TextExtractor
 import my.noveldokusha.scraper.domain.BookResult
 import my.noveldokusha.scraper.domain.ChapterResult
+import my.noveldokusha.scraper.toText
 import org.jsoup.nodes.Document
 
 
@@ -40,7 +41,7 @@ class FreeWebNovel(
                 element.select(".ads").remove()
                 element.select("h4").remove()
                 element.select("sub").remove()
-                TextExtractor.get(element)
+                element.toText()
             } ?: ""
         }
 

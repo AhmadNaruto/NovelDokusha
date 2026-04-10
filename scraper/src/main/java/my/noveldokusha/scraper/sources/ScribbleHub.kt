@@ -18,6 +18,7 @@ import my.noveldokusha.scraper.SourceInterface
 import my.noveldokusha.scraper.TextExtractor
 import my.noveldokusha.scraper.domain.BookResult
 import my.noveldokusha.scraper.domain.ChapterResult
+import my.noveldokusha.scraper.toText
 import org.jsoup.nodes.Document
 
 class ScribbleHub(
@@ -40,7 +41,7 @@ class ScribbleHub(
             doc.selectFirst("#chp_raw")?.let { element ->
                 element.select("script").remove()
                 element.select("div.modern_chapter_ad").remove()
-                TextExtractor.get(element)
+                element.toText()
             } ?: ""
         }
 
