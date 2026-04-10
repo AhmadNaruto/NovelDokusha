@@ -42,11 +42,12 @@ import my.noveldokusha.feature.local_database.BookMetadata
 fun LibraryScreen(
     navigationRouteViewModel: NavigationRouteViewModel = viewModel()
 ) {
-    val libraryModel: LibraryViewModel = viewModel()
+    val libraryModel: LibraryPageViewModel = viewModel()
 
     val context by rememberUpdatedState(LocalContext.current)
     var showDropDown by remember { mutableStateOf(false) }
     var showSearch by remember { mutableStateOf(false) }
+    var showManageCategories by remember { mutableStateOf(false) }
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(
         snapAnimationSpec = null,
         flingAnimationSpec = null
@@ -58,7 +59,9 @@ fun LibraryScreen(
             LibraryTopAppBar(
                 scrollBehavior = scrollBehavior,
                 showSearch = showSearch,
+                showManageCategories = showManageCategories,
                 onSearchToggle = { showSearch = !showSearch },
+                onManageCategoriesToggle = { showManageCategories = !showManageCategories },
                 onFilterClick = { libraryModel.showBottomSheet = !libraryModel.showBottomSheet },
                 showDropDown = showDropDown,
                 onDropDownToggle = { showDropDown = !showDropDown },
@@ -92,7 +95,7 @@ fun LibraryScreen(
             BookSettingsDialog(
                 book = libraryModel.getBook(state.book.url)
                     .collectAsState(initial = state.book)
-                    .value,
+                    .value ?: state.book,
                 onDismiss = { libraryModel.bookSettingsDialogState = BookSettingsDialogState.Hide },
                 onToggleCompleted = { libraryModel.bookCompletedToggle(state.book.url) }
             )
@@ -105,6 +108,13 @@ fun LibraryScreen(
         visible = libraryModel.showBottomSheet,
         onDismiss = { libraryModel.showBottomSheet = false }
     )
+
+    if (showManageCategories) {
+        ManageCategoriesDialog(
+            viewModel = libraryModel,
+            onDismiss = { showManageCategories = false }
+        )
+    }
 }
 
 /**
@@ -115,7 +125,9 @@ fun LibraryScreen(
 private fun LibraryTopAppBar(
     scrollBehavior: androidx.compose.material3.TopAppBarScrollBehavior,
     showSearch: Boolean,
+    showManageCategories: Boolean,
     onSearchToggle: () -> Unit,
+    onManageCategoriesToggle: () -> Unit,
     onFilterClick: () -> Unit,
     showDropDown: Boolean,
     onDropDownToggle: () -> Unit,
@@ -171,7 +183,8 @@ private fun LibraryTopAppBar(
             }
             LibraryDropDown(
                 expanded = showDropDown,
-                onDismiss = onDismissDropDown
+                onDismiss = onDismissDropDown,
+                onManageCategories = onManageCategoriesToggle
             )
         },
         modifier = Modifier.fillMaxWidth()
