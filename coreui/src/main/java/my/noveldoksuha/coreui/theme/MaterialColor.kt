@@ -1,104 +1,155 @@
 package my.noveldoksuha.coreui.theme
 
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 
 @Composable
 fun ColorScheme.isLightTheme() = background.luminance() > 0.5
 
-val light_colorScheme = ColorScheme(
-    primary = Grey25,
-    onPrimary = Grey900,
-    primaryContainer = Grey50,
-    onPrimaryContainer = Grey800,
-    inversePrimary = Grey900,
-    secondary = Grey25,
-    onSecondary = Grey900,
-    secondaryContainer = ColorAccent,
-    onSecondaryContainer = Grey25,
-    tertiary = Grey200,
-    onTertiary = Grey600,
-    tertiaryContainer = Grey50,
-    onTertiaryContainer = Grey900,
+// ============================================================================
+// Light Color Scheme - Modern M3 with proper tonal relationships
+// ============================================================================
+
+val light_colorScheme = lightColorScheme(
+    primary = ColorAccent,
+    onPrimary = Color.White,
+    primaryContainer = ColorAccentVariant.copy(alpha = 0.25f),
+    onPrimaryContainer = ColorAccentDark,
+    
+    secondary = ColorSecondary,
+    onSecondary = Color.White,
+    secondaryContainer = ColorSecondaryVariant.copy(alpha = 0.2f),
+    onSecondaryContainer = ColorSecondary,
+    
+    tertiary = ColorTertiary,
+    onTertiary = Color.White,
+    tertiaryContainer = ColorTertiary.copy(alpha = 0.15f),
+    onTertiaryContainer = ColorTertiaryVariant,
+    
     background = Grey25,
     onBackground = Grey900,
+    
     surface = Grey25,
     onSurface = Grey900,
-    surfaceVariant = Grey50,
-    onSurfaceVariant = Grey900,
-    surfaceTint = Grey300,
+    surfaceVariant = Grey75,
+    onSurfaceVariant = Grey800,
+    surfaceTint = ColorAccent,
+    surfaceContainerLowest = Grey0,
+    surfaceContainerLow = Grey50,
+    surfaceContainer = Grey75,
+    surfaceContainerHigh = Grey100,
+    surfaceContainerHighest = Grey200,
+    
     inverseSurface = Grey900,
     inverseOnSurface = Grey25,
-    error = Error300,
-    onError = Grey900,
-    errorContainer = Error200,
-    onErrorContainer = Grey800,
-    outline = Grey800,
+    inversePrimary = ColorAccentVariant,
+    
+    error = ColorError,
+    onError = Color.White,
+    errorContainer = ColorError.copy(alpha = 0.15f),
+    onErrorContainer = ColorErrorVariant,
+    
+    outline = Grey400,
     outlineVariant = Grey200,
-    scrim = Grey300,
+    scrim = Color.Black.copy(alpha = 0.4f),
 )
 
-val dark_colorScheme = ColorScheme(
-    primary = Grey900,
-    onPrimary = Grey25,
-    primaryContainer = Grey800,
-    onPrimaryContainer = Grey50,
-    inversePrimary = Grey25,
-    secondary = Grey900,
-    onSecondary = Grey25,
-    secondaryContainer = ColorAccent,
-    onSecondaryContainer = Grey75,
-    tertiary = Grey700,
-    onTertiary = Grey300,
-    tertiaryContainer = Grey600,
-    onTertiaryContainer = Grey50,
+// ============================================================================
+// Dark Color Scheme - AMOLED-friendly with vibrant accents
+// ============================================================================
+
+val dark_colorScheme = darkColorScheme(
+    primary = ColorAccentVariant,
+    onPrimary = ColorAccentDark,
+    primaryContainer = ColorAccent.copy(alpha = 0.3f),
+    onPrimaryContainer = ColorAccentVariant,
+    
+    secondary = ColorSecondaryVariant,
+    onSecondary = ColorSecondary,
+    secondaryContainer = ColorSecondary.copy(alpha = 0.25f),
+    onSecondaryContainer = ColorSecondaryVariant,
+    
+    tertiary = ColorTertiaryVariant,
+    onTertiary = ColorTertiary,
+    tertiaryContainer = ColorTertiary.copy(alpha = 0.2f),
+    onTertiaryContainer = ColorTertiaryVariant,
+    
     background = Grey900,
     onBackground = Grey50,
+    
     surface = Grey900,
-    onSurface = Grey25,
-    surfaceVariant = Grey900,
-    onSurfaceVariant = Grey50,
-    surfaceTint = Grey700,
+    onSurface = Grey50,
+    surfaceVariant = Grey800,
+    onSurfaceVariant = Grey200,
+    surfaceTint = ColorAccentVariant,
+    surfaceContainerLowest = Grey1000,
+    surfaceContainerLow = Grey900,
+    surfaceContainer = Grey800,
+    surfaceContainerHigh = Grey700,
+    surfaceContainerHighest = Grey600,
+    
     inverseSurface = Grey25,
     inverseOnSurface = Grey900,
-    error = Error600,
-    onError = Grey25,
-    errorContainer = Error800,
-    onErrorContainer = Grey50,
-    outline = Grey25,
+    inversePrimary = ColorAccent,
+    
+    error = ColorErrorVariant,
+    onError = ColorError,
+    errorContainer = ColorError.copy(alpha = 0.2f),
+    onErrorContainer = ColorErrorVariant,
+    
+    outline = Grey400,
     outlineVariant = Grey700,
-    scrim = Grey800,
+    scrim = Color.Black.copy(alpha = 0.6f),
 )
 
-val black_colorScheme = ColorScheme(
-    primary = Grey1000,
-    onPrimary = Grey25,
-    primaryContainer = Grey900,
-    onPrimaryContainer = Grey100,
-    inversePrimary = Grey25,
-    secondary = Grey1000,
-    onSecondary = Grey25,
-    secondaryContainer = ColorAccent,
-    onSecondaryContainer = Grey75,
-    tertiary = Grey800,
-    onTertiary = Grey300,
-    tertiaryContainer = Grey700,
-    onTertiaryContainer = Grey50,
-    background = Grey1000,
+// ============================================================================
+// Black Color Scheme - True black for AMOLED with vibrant accents
+// ============================================================================
+
+val black_colorScheme = darkColorScheme(
+    primary = ColorAccentVariant,
+    onPrimary = ColorAccentDark,
+    primaryContainer = ColorAccent.copy(alpha = 0.35f),
+    onPrimaryContainer = ColorAccentVariant,
+    
+    secondary = ColorSecondaryVariant,
+    onSecondary = ColorSecondary,
+    secondaryContainer = ColorSecondary.copy(alpha = 0.3f),
+    onSecondaryContainer = ColorSecondaryVariant,
+    
+    tertiary = ColorTertiaryVariant,
+    onTertiary = ColorTertiary,
+    tertiaryContainer = ColorTertiary.copy(alpha = 0.25f),
+    onTertiaryContainer = ColorTertiaryVariant,
+    
+    background = Grey1000, // True black
     onBackground = Grey50,
-    surface = Grey1000,
-    onSurface = Grey25,
-    surfaceVariant = Grey1000,
-    onSurfaceVariant = Grey50,
-    surfaceTint = Grey800,
+    
+    surface = Grey1000, // True black
+    onSurface = Grey50,
+    surfaceVariant = Grey900,
+    onSurfaceVariant = Grey200,
+    surfaceTint = ColorAccentVariant,
+    surfaceContainerLowest = Grey1000,
+    surfaceContainerLow = Grey900,
+    surfaceContainer = Grey900,
+    surfaceContainerHigh = Grey800,
+    surfaceContainerHighest = Grey700,
+    
     inverseSurface = Grey25,
     inverseOnSurface = Grey1000,
-    error = Error600,
-    onError = Grey25,
-    errorContainer = Error800,
-    onErrorContainer = Grey50,
-    outline = Grey25,
+    inversePrimary = ColorAccent,
+    
+    error = ColorErrorVariant,
+    onError = ColorError,
+    errorContainer = ColorError.copy(alpha = 0.25f),
+    onErrorContainer = ColorErrorVariant,
+    
+    outline = Grey400,
     outlineVariant = Grey800,
-    scrim = Grey900,
+    scrim = Color.Black.copy(alpha = 0.7f),
 )

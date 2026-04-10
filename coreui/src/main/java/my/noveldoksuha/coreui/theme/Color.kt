@@ -4,63 +4,78 @@ package my.noveldoksuha.coreui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val ColorAccent = Color(0xFF2A59B6)
-val ColorLike = Color(0xFFF44336)
-val ColorNotice = Color(0xFFE48800)
+// ============================================================================
+// Modern Vibrant Color Palette (Material You Inspired)
+// ============================================================================
+
+// Primary Accent - Modern Indigo (replaces old dull blue #2A59B6)
+val ColorAccent = Color(0xFF6366F1) // Indigo 500 - vibrant & modern
+val ColorAccentVariant = Color(0xFF818CF8) // Indigo 400 - lighter variant
+val ColorAccentDark = Color(0xFF4F46E5) // Indigo 600 - darker variant
+
+// Secondary Accent - Purple for variety
+val ColorSecondary = Color(0xFF8B5CF6) // Violet 500
+val ColorSecondaryVariant = Color(0xFFA78BFA) // Violet 400
+
+// Tertiary Accent - Pink/Cyan for special highlights
+val ColorTertiary = Color(0xFFEC4899) // Pink 500
+val ColorTertiaryVariant = Color(0xFF06B6D4) // Cyan 500
+
+// Functional Colors (replaces ColorLike and ColorNotice)
+val ColorLike = Color(0xFFEF4444) // Red 500 - for favorites/bookmarks
+val ColorLikeVariant = Color(0xFFF87171) // Red 400
+
+val ColorNotice = Color(0xFFF59E0B) // Amber 500 - for warnings/notices
+val ColorNoticeVariant = Color(0xFFFBBF24) // Amber 400
+
+// Success & Info Colors (more vibrant)
+val ColorSuccess = Color(0xFF10B981) // Emerald 500
+val ColorSuccessVariant = Color(0xFF34D399) // Emerald 400
+
+val ColorInfo = Color(0xFF3B82F6) // Blue 500
+val ColorInfoVariant = Color(0xFF60A5FA) // Blue 400
+
+// Error Color
+val ColorError = Color(0xFFEF4444) // Red 500
+val ColorErrorVariant = Color(0xFFF87171) // Red 400
+
+// ============================================================================
+// Neutral Grey Scale (Refined for better contrast)
+// ============================================================================
 
 val Grey0 = Color(0xFFFFFFFF)
-val Grey25 = Color(0xFFFEFEFE)
-val Grey50 = Color(0xFFF8F8F8)
-val Grey75 = Color(0xFFEFEFEF)
-val Grey100 = Color(0xFFC3C3C3)
-val Grey200 = Color(0xFFAFAFAF)
-val Grey300 = Color(0xFF9C9C9C)
-val Grey400 = Color(0xFF888888)
-val Grey500 = Color(0xFF727272)
-val Grey600 = Color(0xFF5B5B5B)
-val Grey700 = Color(0xFF454545)
-val Grey800 = Color(0xFF2E2E2E)
-val Grey900 = Color(0xFF181818)
+val Grey25 = Color(0xFFFAFAFA)
+val Grey50 = Color(0xFFF5F5F5)
+val Grey75 = Color(0xFFEEEEEE)
+val Grey100 = Color(0xFFE5E5E5)
+val Grey200 = Color(0xFFD4D4D4)
+val Grey300 = Color(0xFFA3A3A3)
+val Grey400 = Color(0xFF737373)
+val Grey500 = Color(0xFF525252)
+val Grey600 = Color(0xFF404040)
+val Grey700 = Color(0xFF262626)
+val Grey800 = Color(0xFF171717)
+val Grey900 = Color(0xFF0A0A0A)
 val Grey1000 = Color(0xFF000000)
 
-val Error25 = Color(0xFFF6A0A7)
-val Error50 = Color(0xFFF38A8F)
-val Error75 = Color(0xFFF17377)
-val Error100 = Color(0xFFEF5C5D)
-val Error200 = Color(0xFFED4745)
-val Error300 = Color(0xFFEB352E)
-val Error400 = Color(0xFFE92317)
-val Error500 = Color(0xFFCE2514)
-val Error600 = Color(0xFFB32512)
-val Error700 = Color(0xFF99240F)
-val Error800 = Color(0xFF7E210C)
-val Error900 = Color(0xFF631D0A)
-val Error1000 = Color(0xFF481707)
+// ============================================================================
+// Gradient Definitions (for modern UI elements)
+// ============================================================================
 
-val Success25 = Color(0xFFA7DB9F)
-val Success50 = Color(0xFF90D388)
-val Success75 = Color(0xFF78CB71)
-val Success100 = Color(0xFF60C25A)
-val Success200 = Color(0xFF47BA43)
-val Success300 = Color(0xFF2DB12C)
-val Success400 = Color(0xFF15A917)
-val Success500 = Color(0xFF139618)
-val Success600 = Color(0xFF108219)
-val Success700 = Color(0xFF0E6F18)
-val Success800 = Color(0xFF0B5B16)
-val Success900 = Color(0xFF094813)
-val Success1000 = Color(0xFF073410)
+val PrimaryGradient = listOf(
+    Color(0xFF6366F1), // Indigo
+    Color(0xFF8B5CF6), // Violet
+    Color(0xFFEC4899)  // Pink
+)
 
-val Info25 = Color(0xFFE9E1A0)
-val Info50 = Color(0xFFE3DB89)
-val Info75 = Color(0xFFDED773)
-val Info100 = Color(0xFFD9D35C)
-val Info200 = Color(0xFFD3D045)
-val Info300 = Color(0xFFCECE2E)
-val Info400 = Color(0xFFC5C917)
-val Info500 = Color(0xFFAAB214)
-val Info600 = Color(0xFF8F9B12)
-val Info700 = Color(0xFF76840F)
-val Info800 = Color(0xFF5F6D0C)
-val Info900 = Color(0xFF48550A)
-val Info1000 = Color(0xFF333E07)
+val SecondaryGradient = listOf(
+    Color(0xFF06B6D4), // Cyan
+    Color(0xFF3B82F6), // Blue
+    Color(0xFF6366F1)  // Indigo
+)
+
+val SuccessGradient = listOf(
+    Color(0xFF10B981), // Emerald
+    Color(0xFF14B8A6), // Teal
+    Color(0xFF06B6D4)  // Cyan
+)
