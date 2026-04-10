@@ -1,6 +1,7 @@
 package my.noveldokusha.settings
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -10,9 +11,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import my.noveldoksuha.coreui.components.CollapsibleDivider
 import my.noveldokusha.tooling.backup_create.onBackupCreate
@@ -32,19 +36,7 @@ fun SettingsScreen() {
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             Column {
-                TopAppBar(
-                    scrollBehavior = scrollBehavior,
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Unspecified,
-                        scrolledContainerColor = Color.Unspecified,
-                    ),
-                    title = {
-                        Text(
-                            text = stringResource(id = R.string.title_settings),
-                            style = MaterialTheme.typography.headlineSmall
-                        )
-                    }
-                )
+                SettingsTopAppBar(scrollBehavior = scrollBehavior)
                 CollapsibleDivider(scrollBehavior.state)
             }
         },
@@ -66,6 +58,39 @@ fun SettingsScreen() {
                 onPreferOfflineChange = viewModel::onPreferOfflineTranslationChange,
                 onUserAgentChange = viewModel::onUserAgentChange,
                 modifier = Modifier.padding(innerPadding),
+            )
+        }
+    )
+}
+
+/**
+ * Modern Settings TopAppBar with gradient title
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SettingsTopAppBar(
+    scrollBehavior: androidx.compose.material3.TopAppBarScrollBehavior
+) {
+    TopAppBar(
+        scrollBehavior = scrollBehavior,
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color.Transparent,
+            scrolledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+        ),
+        title = {
+            Text(
+                text = stringResource(id = R.string.title_settings),
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary,
+                            MaterialTheme.colorScheme.secondary
+                        )
+                    )
+                ),
+                maxLines = 1
             )
         }
     )
