@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -57,15 +58,16 @@ fun BookImageButtonView(
     onLongClick: () -> Unit = { },
 ) {
     val surfaceColor = MaterialTheme.colorApp.bookSurface
+    val cardShape = my.noveldoksuha.coreui.theme.elevatedCardShape
 
     Column(modifier = modifier.testTag(AppTestTags.BOOK_IMAGE_BUTTON_VIEW)) {
-        Card(
-            shape = ImageBorderShape,
-            colors = CardDefaults.cardColors(
+        ElevatedCard(
+            shape = cardShape,
+            colors = CardDefaults.elevatedCardColors(
                 containerColor = surfaceColor,
             ),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 6.dp,
+            elevation = CardDefaults.elevatedCardElevation(
+                defaultElevation = 1.dp,
                 pressedElevation = 2.dp,
             ),
             modifier = Modifier
@@ -81,23 +83,7 @@ fun BookImageButtonView(
                 ),
         ) {
             Box {
-                // Shimmer-like gradient background behind cover
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            brush = Brush.linearGradient(
-                                colors = listOf(
-                                    surfaceColor,
-                                    surfaceColor.copy(alpha = 0.7f),
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-                                ),
-                                start = Offset(0f, 0f),
-                                end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY),
-                            )
-                        )
-                )
-
+                // Book cover image
                 ImageView(
                     imageModel = coverImageModel,
                     contentDescription = title,
@@ -106,7 +92,7 @@ fun BookImageButtonView(
                 )
 
                 if (bookTitlePosition == BookTitlePosition.Inside) {
-                    // Modern title overlay with clean gradient backdrop
+                    // Modern title overlay with gradient backdrop
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -120,31 +106,31 @@ fun BookImageButtonView(
                                 .background(
                                     Brush.verticalGradient(
                                         0f to Color.Transparent,
-                                        0.3f to Color.Black.copy(alpha = 0.15f),
-                                        0.7f to Color.Black.copy(alpha = 0.55f),
-                                        1f to Color.Black.copy(alpha = 0.75f),
+                                        0.4f to Color.Black.copy(alpha = 0.2f),
+                                        0.75f to Color.Black.copy(alpha = 0.6f),
+                                        1f to Color.Black.copy(alpha = 0.85f),
                                     )
                                 )
-                                .padding(top = 40.dp)
+                                .padding(top = 48.dp)
                         )
 
-                        // Title text with shadow instead of stroke outline
+                        // Title text with modern shadow
                         Text(
                             text = title,
                             textAlign = TextAlign.Center,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .align(Alignment.BottomCenter)
-                                .padding(horizontal = 10.dp, vertical = 10.dp),
+                                .padding(horizontal = 12.dp, vertical = 12.dp),
                             style = MaterialTheme.typography.bodySmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = Grey25,
+                                fontWeight = FontWeight.Medium,
+                                color = Color.White,
                                 shadow = Shadow(
-                                    color = Color.Black.copy(alpha = 0.8f),
+                                    color = Color.Black.copy(alpha = 0.9f),
                                     offset = Offset(0f, 2f),
                                     blurRadius = 4f,
                                 ),
-                                lineHeight = 14.sp,
+                                lineHeight = 16.sp,
                                 fontSize = 12.sp,
                             ),
                             maxLines = 3,
@@ -162,9 +148,9 @@ fun BookImageButtonView(
                     .fillMaxWidth()
                     .height(48.dp)
                     .padding(horizontal = 4.dp, vertical = 4.dp),
-                style = MaterialTheme.typography.bodySmall.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    lineHeight = 16.sp,
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontWeight = FontWeight.Medium,
+                    lineHeight = 18.sp,
                 ),
                 textAlign = TextAlign.Center,
                 overflow = TextOverflow.Ellipsis,

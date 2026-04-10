@@ -17,10 +17,12 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -61,7 +63,7 @@ fun MyButton(
     selectedBackgroundColor: Color = ColorAccent,
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
-    indication: Indication = LocalIndication.current,
+    indication: Indication = rememberRipple(),
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     content: @Composable BoxScope.() -> Unit = {
 

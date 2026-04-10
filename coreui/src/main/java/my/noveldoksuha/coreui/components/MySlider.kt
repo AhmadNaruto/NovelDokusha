@@ -1,38 +1,145 @@
 package my.noveldoksuha.coreui.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderColors
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
-import my.noveldoksuha.coreui.theme.ColorAccent
+import androidx.compose.ui.unit.dp
 import my.noveldoksuha.coreui.theme.InternalTheme
-import my.noveldoksuha.coreui.theme.mix
-import my.noveldoksuha.coreui.theme.selectableMinHeight
+
+// ============================================================================
+// Modern Slider Component - Material 3 Compliant
+// Replaces custom draggable implementation with M3 Slider
+// ============================================================================
+
+/**
+ * Modern Slider with label and value display
+ * 
+ * Usage:
+ * ```
+ * ModernSlider(
+ *     value = sliderValue,
+ *     onValueChange = { sliderValue = it },
+ *     valueRange = 0f..100f,
+ *     label = "Volume",
+ *     showValue = true
+ * )
+ * ```
+ */
+@Composable
+fun ModernSlider(
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
+    label: String? = null,
+    showValue: Boolean = true,
+    steps: Int = 0,
+    enabled: Boolean = true,
+    colors: SliderColors = SliderDefaults.colors(
+        thumbColor = MaterialTheme.colorScheme.primary,
+        activeTrackColor = MaterialTheme.colorScheme.primary,
+        inactiveTrackColor = MaterialTheme.colorScheme.primaryContainer
+    ),
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        // Label and value display
+        if (label != null || showValue) {
+            androidx.compose.foundation.layout.Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (label != null) {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                
+                if (showValue) {
+                    Text(
+                        text = formatSliderValue(value),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+                }
+            }
+        }
+
+        // M3 Slider
+        Slider(
+            value = value,
+            onValueChange = onValueChange,
+            valueRange = valueRange,
+            steps = steps,
+            enabled = enabled,
+            colors = colors,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+/**
+ * Modern Slider with custom overlay content (backward compatible with old MySlider API)
+ */
+@Composable
+fun ModernSliderWithOverlay(
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
+    steps: Int = 0,
+    enabled: Boolean = true,
+    overlayContent: @Composable BoxScope.() -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(modifier = modifier.fillMaxWidth()) {
+        Slider(
+            value = value,
+            onValueChange = onValueChange,
+            valueRange = valueRange,
+            steps = steps,
+            enabled = enabled,
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.Center)
+        )
+        overlayContent()
+    }
+}
+
+/**
+ * Helper function to format slider value
+ */
+private fun formatSliderValue(value: Float): String {
+    return if (value == value.toLong().toFloat()) {
+        value.toLong().toString()
+    } else {
+        String.format("%.1f", value)
+    }
+}
+
+// ============================================================================
+// Backward Compatibility - Keep old MySlider API but use M3 Slider internally
+// ============================================================================
 
 @Composable
 fun MySlider(
@@ -42,18 +149,14 @@ fun MySlider(
     text: String,
     modifier: Modifier = Modifier,
 ) {
-    MySlider(
+    ModernSlider(
         value = value,
-        valueRange = valueRange,
         onValueChange = onValueChange,
-        modifier = modifier,
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.align(Alignment.Center),
-            color = MaterialTheme.colorScheme.contentColorFor(ColorAccent)
-        )
-    }
+        valueRange = valueRange,
+        label = text,
+        showValue = true,
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -64,89 +167,42 @@ fun MySlider(
     modifier: Modifier = Modifier,
     overlayContent: @Composable BoxScope.() -> Unit,
 ) {
-    Box(modifier) {
-        MySliderBase(
-            range = valueRange,
-            value = value,
-            onValueChange = onValueChange,
-        )
-        overlayContent()
-    }
+    ModernSliderWithOverlay(
+        value = value,
+        onValueChange = onValueChange,
+        valueRange = valueRange,
+        overlayContent = overlayContent,
+        modifier = modifier
+    )
 }
 
-@Composable
-private fun MySliderBase(
-    range: ClosedFloatingPointRange<Float>,
-    value: Float,
-    onValueChange: (Float) -> Unit,
-    height: Dp = selectableMinHeight,
-    backgroundColor: Color = ColorAccent.mix(MaterialTheme.colorScheme.primary, 0.5f),
-    trackColor: Color = ColorAccent,
-) {
-    val currentValue by rememberUpdatedState(newValue = value)
-    BoxWithConstraints {
-        val currentDensity by rememberUpdatedState(newValue = LocalDensity.current)
-        val heightPx = with(currentDensity) { height.toPx() }
-
-        /**
-         * Don't check for 1/0 Exception as is responsibility
-         * of the user to guarantee the range is correct
-         */
-        val offsetPx by remember {
-            derivedStateOf {
-                val normalizedValue =
-                    (currentValue - range.start) / (range.endInclusive - range.start)
-                val sliderSizePx = constraints.maxWidth.toFloat() - heightPx
-                normalizedValue * sliderSizePx + heightPx
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(height)
-                .clip(CircleShape)
-                .background(backgroundColor)
-                .draggable(
-                    orientation = Orientation.Horizontal,
-                    state = rememberDraggableState { deltaPx ->
-                        val valueSize = (constraints.maxWidth.toFloat() - heightPx)
-                        if (valueSize <= 0f) return@rememberDraggableState
-                        val delta = deltaPx * (range.endInclusive - range.start) / valueSize
-
-                        val newValue = (currentValue + delta).coerceIn(
-                            minimumValue = range.start,
-                            maximumValue = range.endInclusive
-                        )
-                        if (newValue != currentValue) {
-                            onValueChange(newValue)
-                        }
-                    }
-                )
-        ) {
-            Box(
-                modifier = Modifier
-                    .height(height)
-                    .width(with(currentDensity) { offsetPx.toDp() })
-                    .clip(RoundedCornerShape(bottomEndPercent = 50, topEndPercent = 50))
-                    .background(trackColor)
-            )
-        }
-    }
-}
+// ============================================================================
+// Preview
+// ============================================================================
 
 @Preview(heightDp = 120, widthDp = 500)
 @Composable
-fun MySliderBasePreview() {
-    var value by remember { mutableFloatStateOf(4f) }
+fun ModernSliderPreview() {
+    var value by remember { mutableFloatStateOf(50f) }
     InternalTheme {
-        Box {
-            MySliderBase(
-                range = 0f..100f,
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            ModernSlider(
                 value = value,
-                onValueChange = {
-                    value = it
-                }
+                onValueChange = { value = it },
+                valueRange = 0f..100f,
+                label = "Volume",
+                showValue = true
+            )
+            
+            ModernSlider(
+                value = value / 100f,
+                onValueChange = { value = it * 100f },
+                valueRange = 0f..1f,
+                label = "Brightness",
+                showValue = true,
+                modifier = Modifier.padding(top = 16.dp)
             )
         }
     }
