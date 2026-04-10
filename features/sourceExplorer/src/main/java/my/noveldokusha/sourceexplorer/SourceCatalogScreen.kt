@@ -23,12 +23,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import my.noveldoksuha.coreui.components.AnimatedTransition
 import my.noveldoksuha.coreui.components.BooksVerticalView
 import my.noveldoksuha.coreui.components.CollapsibleDivider
@@ -70,19 +73,31 @@ internal fun SourceCatalogScreen(
                         ToolbarMode.MAIN -> TopAppBar(
                             scrollBehavior = scrollBehavior,
                             colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = Color.Unspecified,
-                                scrolledContainerColor = Color.Unspecified,
+                                containerColor = Color.Transparent,
+                                scrolledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+                                titleContentColor = MaterialTheme.colorScheme.onSurface,
+                                actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                             ),
                             title = {
                                 Column {
                                     Text(
                                         text = stringResource(id = state.sourceCatalogNameStrId.value),
-                                        style = MaterialTheme.typography.headlineSmall,
+                                        style = MaterialTheme.typography.headlineSmall.copy(
+                                            fontWeight = FontWeight.SemiBold,
+                                            brush = Brush.linearGradient(
+                                                colors = listOf(
+                                                    MaterialTheme.colorScheme.primary,
+                                                    MaterialTheme.colorScheme.secondary
+                                                )
+                                            )
+                                        ),
                                         maxLines = 1
                                     )
                                     Text(
                                         text = stringResource(R.string.catalog),
-                                        style = MaterialTheme.typography.titleSmall
+                                        style = MaterialTheme.typography.titleSmall.copy(
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
                                     )
                                 }
                             },
