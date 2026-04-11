@@ -22,7 +22,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -63,7 +63,7 @@ fun MyButton(
     selectedBackgroundColor: Color = ColorAccent,
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
-    indication: Indication = rememberRipple(),
+    indication: Indication = ripple(),
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     content: @Composable BoxScope.() -> Unit = {
 

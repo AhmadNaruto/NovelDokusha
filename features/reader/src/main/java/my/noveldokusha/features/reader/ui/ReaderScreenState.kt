@@ -4,7 +4,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import my.noveldoksuha.coreui.theme.Themes
 import my.noveldokusha.features.reader.features.LiveTranslationSettingData
-import my.noveldokusha.features.reader.features.TextToSpeechSettingData
 
 internal data class ReaderScreenState(
     val showReaderInfo: MutableState<Boolean>,
@@ -24,7 +23,6 @@ internal data class ReaderScreenState(
         val isTextSelectable: State<Boolean>,
         val keepScreenOn: State<Boolean>,
         val fullScreen: State<Boolean>,
-        val textToSpeech: TextToSpeechSettingData,
         val liveTranslation: LiveTranslationSettingData,
         val style: StyleSettingsData,
         val selectedSetting: MutableState<Type>,
@@ -37,7 +35,7 @@ internal data class ReaderScreenState(
         )
 
         enum class Type {
-            None, LiveTranslation, TextToSpeech, Style, More
+            None, LiveTranslation, Style, More
         }
     }
 }

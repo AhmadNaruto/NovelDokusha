@@ -10,7 +10,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.padding
@@ -56,14 +55,9 @@ import my.noveldoksuha.coreui.theme.InternalTheme
 import my.noveldoksuha.coreui.theme.Themes
 import my.noveldoksuha.coreui.theme.colorApp
 import my.noveldoksuha.coreui.theme.rememberMutableStateOf
-import my.noveldokusha.features.reader.domain.ReaderItem
 import my.noveldokusha.features.reader.features.LiveTranslationSettingData
-import my.noveldokusha.features.reader.features.TextSynthesis
-import my.noveldokusha.features.reader.features.TextToSpeechSettingData
 import my.noveldokusha.features.reader.ui.ReaderScreenState.Settings.Type
 import my.noveldokusha.reader.R
-import my.noveldokusha.text_to_speech.Utterance
-import my.noveldokusha.text_to_speech.VoiceData
 import my.noveldokusha.text_translator.domain.TranslationModelState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -79,7 +73,7 @@ internal fun ReaderScreen(
     onTextSizeChanged: (Float) -> Unit,
     onPressBack: () -> Unit,
     onOpenChapterInWeb: () -> Unit,
-    readerContent: @Composable (paddingValues: PaddingValues) -> Unit,
+    readerContent: @Composable () -> Unit,
 ) {
     // Capture back action when viewing info
     BackHandler(enabled = state.showReaderInfo.value) {
@@ -109,20 +103,9 @@ internal fun ReaderScreen(
                         TopAppBar(
                             colors = TopAppBarDefaults.topAppBarColors(
                                 containerColor = Color.Transparent,
-                                scrolledContainerColor = MaterialTheme.colorApp.tintedSurface.copy(alpha = 0.95f),
-                                titleContentColor = MaterialTheme.colorScheme.onSurface,
+                                scrolledContainerColor = Color.Transparent,
                             ),
-                            title = {
-                                Text(
-                                    text = state.readerInfo.chapterTitle.value,
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
-                                    ),
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.animateContentSize()
-                                )
-                            },
+                            title = { },
                             navigationIcon = {
                                 IconButton(onClick = onPressBack) {
                                     Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
@@ -160,7 +143,7 @@ internal fun ReaderScreen(
                 }
             }
         },
-        content = readerContent,
+        content = { readerContent() },
         bottomBar = {
 
             val toggleOrSet = { type: Type ->
@@ -274,50 +257,6 @@ private fun ViewsPreview(
         , onRedoTranslation = {}
     )
 
-    val textToSpeechSettingData = TextToSpeechSettingData(
-        isPlaying = rememberMutableStateOf(false),
-        isLoadingChapter = rememberMutableStateOf(false),
-        voicePitch = rememberMutableStateOf(1f),
-        voiceSpeed = rememberMutableStateOf(1f),
-        availableVoices = remember { mutableStateListOf() },
-        activeVoice = remember {
-            mutableStateOf(
-                VoiceData(
-                    id = "",
-                    language = "",
-                    quality = 100,
-                    needsInternet = true
-                )
-            )
-        },
-        currentActiveItemState = remember {
-            mutableStateOf(
-                TextSynthesis(
-                    playState = Utterance.PlayState.PLAYING,
-                    itemPos = ReaderItem.Title(
-                        chapterUrl = "",
-                        chapterIndex = 0,
-                        chapterItemPosition = 1,
-                        text = ""
-                    )
-                )
-            )
-        },
-        isThereActiveItem = rememberMutableStateOf(true),
-        setPlaying = {},
-        playPreviousItem = {},
-        playPreviousChapter = {},
-        playNextItem = {},
-        playNextChapter = {},
-        setVoiceId = {},
-        playFirstVisibleItem = {},
-        scrollToActiveItem = {},
-        setVoiceSpeed = {},
-        setVoicePitch = {},
-        setCustomSavedVoices = {},
-        customSavedVoices = rememberMutableStateOf(value = listOf())
-    )
-
     val style = ReaderScreenState.Settings.StyleSettingsData(
         followSystem = remember { mutableStateOf(true) },
         currentTheme = remember { mutableStateOf(Themes.DARK) },
@@ -340,7 +279,6 @@ private fun ViewsPreview(
                     settings = ReaderScreenState.Settings(
                         isTextSelectable = remember { mutableStateOf(false) },
                         keepScreenOn = remember { mutableStateOf(false) },
-                        textToSpeech = textToSpeechSettingData,
                         liveTranslation = liveTranslationSettingData,
                         style = style,
                         selectedSetting = remember { mutableStateOf(data.selectedSetting) },
@@ -372,7 +310,6 @@ private class PreviewDataProvider : PreviewParameterProvider<PreviewDataProvider
     override val values = sequenceOf(
         Data(selectedSetting = Type.None),
         Data(selectedSetting = Type.LiveTranslation),
-        Data(selectedSetting = Type.TextToSpeech),
         Data(selectedSetting = Type.Style),
         Data(selectedSetting = Type.More),
     )

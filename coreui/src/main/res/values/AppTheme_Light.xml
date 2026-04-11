@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-	<style name="AppTheme.Light" parent="Theme.MaterialComponents.Light.NoActionBar.Bridge">
+	<style name="AppTheme.Light" parent="Theme.Material3.Light.NoActionBar">
 		<item name="isLightTheme">true</item>
 		<item name="android:windowLightStatusBar">true</item>
 		<item name="android:statusBarColor">?colorPrimary</item>

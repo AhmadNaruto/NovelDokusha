@@ -121,91 +121,62 @@ internal fun ChaptersScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            val isAtTop by lazyListState.isAtTop(threshold = 40.dp)
-            val alpha by animateFloatAsState(targetValue = if (isAtTop) 0f else 1f, label = "")
-            val backgroundColor by animateColorAsState(
-                targetValue = MaterialTheme.colorScheme.background.copy(alpha = alpha),
-                label = ""
-            )
-            val titleColor by animateColorAsState(
-                targetValue = MaterialTheme.colorScheme.onPrimary.copy(alpha = alpha),
-                label = ""
-            )
-            Surface(color = backgroundColor) {
-                Column {
-                    TopAppBar(
-                        scrollBehavior = scrollBehavior,
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = Color.Transparent,
-                            scrolledContainerColor = Color.Transparent,
-                        ),
-                        title = {
-                            Text(
-                                text = state.book.value.title,
-                                style = MaterialTheme.typography.headlineSmall.copy(
-                                    fontWeight = FontWeight.SemiBold,
-                                    brush = Brush.linearGradient(
-                                        colors = listOf(
-                                            MaterialTheme.colorScheme.primary,
-                                            MaterialTheme.colorScheme.secondary
-                                        )
-                                    )
-                                ),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                color = if (alpha > 0.5f) titleColor else MaterialTheme.colorScheme.onSurface
+            Surface(color = Color.Transparent) {
+                TopAppBar(
+                    scrollBehavior = scrollBehavior,
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = Color.Transparent,
+                    ),
+                    title = { },
+                    navigationIcon = {
+                        IconButton(
+                            onClick = onPressBack
+                        ) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
+                        }
+                    },
+                    actions = {
+                        IconButton(
+                            onClick = onLibraryToggle
+                        ) {
+                            Icon(
+                                if (state.book.value.inLibrary) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
+                                stringResource(R.string.open_the_web_view),
+                                tint = MaterialTheme.colorScheme.error
                             )
-                        },
-                        navigationIcon = {
-                            IconButton(
-                                onClick = onPressBack
-                            ) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
-                            }
-                        },
-                        actions = {
-                            IconButton(
-                                onClick = onLibraryToggle
-                            ) {
-                                Icon(
-                                    if (state.book.value.inLibrary) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
-                                    stringResource(R.string.open_the_web_view),
-                                    tint = MaterialTheme.colorScheme.error
+                        }
+                        IconButton(
+                            onClick = { showBottomSheet = !showBottomSheet }
+                        ) {
+                            Icon(
+                                Icons.Filled.FilterList,
+                                stringResource(R.string.filter),
+                                tint = MaterialTheme.colorScheme.tertiary
+                            )
+                        }
+                        IconButton(onClick = { showDropDown = !showDropDown }) {
+                            Icon(
+                                Icons.Filled.MoreVert,
+                                stringResource(R.string.options_panel)
+                            )
+                            DropdownMenu(
+                                expanded = showDropDown,
+                                onDismissRequest = { showDropDown = false }) {
+                                ChaptersDropDown(
+                                    openInBrowser = {
+                                        if (!state.book.value.url.isLocalUri) {
+                                            onOpenInBrowser(state.book.value.url)
+                                        }
+                                    },
+                                    onSearchBookInDatabase = onSearchBookInDatabase,
+                                    onResumeReading = onResumeReading,
+                                    onChangeCover = onChangeCover,
                                 )
-                            }
-                            IconButton(
-                                onClick = { showBottomSheet = !showBottomSheet }
-                            ) {
-                                Icon(
-                                    Icons.Filled.FilterList,
-                                    stringResource(R.string.filter),
-                                    tint = MaterialTheme.colorScheme.tertiary
-                                )
-                            }
-                            IconButton(onClick = { showDropDown = !showDropDown }) {
-                                Icon(
-                                    Icons.Filled.MoreVert,
-                                    stringResource(R.string.options_panel)
-                                )
-                                DropdownMenu(
-                                    expanded = showDropDown,
-                                    onDismissRequest = { showDropDown = false }) {
-                                    ChaptersDropDown(
-                                        openInBrowser = {
-                                            if (!state.book.value.url.isLocalUri) {
-                                                onOpenInBrowser(state.book.value.url)
-                                            }
-                                        },
-                                        onSearchBookInDatabase = onSearchBookInDatabase,
-                                        onResumeReading = onResumeReading,
-                                        onChangeCover = onChangeCover,
-                                    )
-                                }
                             }
                         }
-                    )
-                    HorizontalDivider(Modifier.alpha(alpha))
-                }
+                    }
+                )
             }
             AnimatedVisibility(
                 visible = state.isInSelectionMode.value,

@@ -10,7 +10,7 @@
 
 	<style name="myReaderTextStyle" />
 
-	<style name="myTabLayout" parent="Widget.Design.TabLayout">
+	<style name="myTabLayout" parent="Widget.Material3.TabLayout">
 		<item name="tabContentStart">20dp</item>
 		<item name="tabUnboundedRipple">true</item>
 		<item name="tabGravity">start</item>
@@ -19,11 +19,11 @@
 		<item name="android:background">?attr/colorPrimary</item>
 	</style>
 
-	<style name="myButtonStyle" parent="Widget.AppCompat.Button">
+	<style name="myButtonStyle" parent="Widget.Material3.Button">
 		<item name="android:backgroundTint">?attr/colorPrimary</item>
 	</style>
 
-	<style name="myBottomNavigationStyle" parent="Widget.MaterialComponents.BottomNavigationView">
+	<style name="myBottomNavigationStyle" parent="Widget.Material3.BottomNavigationView">
 		<item name="itemIconTint">@color/icon_effect</item>
 		<item name="itemTextColor">@color/icon_effect</item>
 		<item name="android:background">?colorPrimary</item>
@@ -31,12 +31,12 @@
 	</style>
 
 	<!-- Bottom Sheet Dialog -->
-	<style name="myShapeAppearance.LargeComponent" parent="ShapeAppearance.MaterialComponents.LargeComponent">
+	<style name="myShapeAppearance.LargeComponent" parent="ShapeAppearance.Material3.LargeComponent">
 		<item name="cornerFamily">rounded</item>
 		<item name="cornerSize">12dp</item>
 	</style>
 
-	<style name="myBottomSheetStyle" parent="Widget.MaterialComponents.BottomSheet.Modal">
+	<style name="myBottomSheetStyle" parent="Widget.Material3.BottomSheet.Modal">
 		<!-- Using tint instead of background color (works for unknown reasons) -->
 		<item name="backgroundTint">#000</item>
 		<item name="backgroundColor">#000</item>
@@ -45,14 +45,14 @@
 		<item name="android:background">#000</item>
 	</style>
 
-	<style name="myBottomSheetDialogStyle" parent="ThemeOverlay.MaterialComponents.BottomSheetDialog">
+	<style name="myBottomSheetDialogStyle" parent="ThemeOverlay.Material3.BottomSheetDialog">
 		<item name="bottomSheetStyle">@style/myBottomSheetStyle</item>
 		<item name="shapeAppearanceLargeComponent">@style/myShapeAppearance.LargeComponent</item>
 	</style>
 
 
 	<!-- App Bar -->
-	<style name="myAppBarLayoutStyle" parent="Widget.MaterialComponents.AppBarLayout.Primary">
+	<style name="myAppBarLayoutStyle" parent="Widget.Material3.AppBarLayout">
 		<item name="elevation">0dp</item>
 	</style>
 

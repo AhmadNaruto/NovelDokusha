@@ -2,6 +2,7 @@ package my.noveldokusha
 
 import android.app.Application
 import android.util.Log
+import android.webkit.CookieManager
 import androidx.work.Configuration
 import coil.ImageLoader
 import coil.ImageLoaderFactory
@@ -32,7 +33,31 @@ class App : Application(), ImageLoaderFactory, Configuration.Provider {
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
+        
+        // Initialize CookieManager for persistent cookies across app restarts
+        initCookieManager()
+        
         periodicWorkersInitializer.init()
+    }
+
+    /**
+     * Initialize WebView CookieManager to persist cookies across app restarts.
+     * This ensures cf_clearance and other cookies survive app restarts.
+     */
+    private fun initCookieManager() {
+        try {
+            val cookieManager = CookieManager.getInstance()
+            cookieManager.setAcceptCookie(true)
+            // Note: setAcceptThirdPartyCookies requires a WebView instance, which is not available here.
+            // It's handled in WebViewActivity and ScraperCookieJar instead.
+
+            // Force cookies to be persisted immediately
+            cookieManager.flush()
+
+            Log.d("App", "CookieManager initialized successfully")
+        } catch (e: Exception) {
+            Log.e("App", "Failed to initialize CookieManager", e)
+        }
     }
 
     override fun newImageLoader(): ImageLoader = when (val networkClient = networkClient) {

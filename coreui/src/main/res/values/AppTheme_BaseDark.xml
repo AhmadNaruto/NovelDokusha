@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-	<style name="AppTheme.BaseDark" parent="Theme.MaterialComponents.NoActionBar.Bridge">
+	<style name="AppTheme.BaseDark" parent="Theme.Material3.Dark.NoActionBar">
 		<item name="isLightTheme">false</item>
 		<item name="android:windowLightStatusBar">false</item>
 		<item name="android:statusBarColor">?colorPrimary</item>

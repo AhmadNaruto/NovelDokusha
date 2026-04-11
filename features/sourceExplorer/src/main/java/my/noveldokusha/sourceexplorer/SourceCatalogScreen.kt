@@ -9,9 +9,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -24,14 +22,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import my.noveldoksuha.coreui.components.AnimatedTransition
 import my.noveldoksuha.coreui.components.BooksVerticalView
 import my.noveldoksuha.coreui.components.CollapsibleDivider
@@ -74,33 +70,9 @@ internal fun SourceCatalogScreen(
                             scrollBehavior = scrollBehavior,
                             colors = TopAppBarDefaults.topAppBarColors(
                                 containerColor = Color.Transparent,
-                                scrolledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-                                titleContentColor = MaterialTheme.colorScheme.onSurface,
-                                actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                scrolledContainerColor = Color.Transparent,
                             ),
-                            title = {
-                                Column {
-                                    Text(
-                                        text = stringResource(id = state.sourceCatalogNameStrId.value),
-                                        style = MaterialTheme.typography.headlineSmall.copy(
-                                            fontWeight = FontWeight.SemiBold,
-                                            brush = Brush.linearGradient(
-                                                colors = listOf(
-                                                    MaterialTheme.colorScheme.primary,
-                                                    MaterialTheme.colorScheme.secondary
-                                                )
-                                            )
-                                        ),
-                                        maxLines = 1
-                                    )
-                                    Text(
-                                        text = stringResource(R.string.catalog),
-                                        style = MaterialTheme.typography.titleSmall.copy(
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    )
-                                }
-                            },
+                            title = { },
                             navigationIcon = {
                                 IconButton(
                                     onClick = onPressBack

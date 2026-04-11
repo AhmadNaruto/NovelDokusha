@@ -32,7 +32,6 @@ include(":data")
 include(":tooling:local_database")
 include(":tooling:text_translator:domain")
 include(":tooling:text_translator:translator_nop")
-include(":tooling:text_to_speech")
 include(":tooling:backup_restore")
 include(":tooling:backup_create")
 

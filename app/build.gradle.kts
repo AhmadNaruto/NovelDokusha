@@ -94,7 +94,7 @@ android {
     // Removed product flavors - using FOSS (Gemini API only) for all builds
 
     buildFeatures {
-        viewBinding = true
+        // viewBinding removed - all UI migrated to Compose
     }
     namespace = "my.noveldokusha"
 }
@@ -103,7 +103,6 @@ dependencies {
 
     implementation(projects.tooling.localDatabase)
     implementation(projects.tooling.textTranslator.domain)
-    implementation(projects.tooling.textToSpeech)
     implementation(projects.tooling.applicationWorkers)
 
     implementation(projects.features.reader)
