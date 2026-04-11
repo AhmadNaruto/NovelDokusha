@@ -25,7 +25,6 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -112,16 +111,13 @@ open class MainActivity : BaseActivity() {
                                             contentDescription = stringResource(id = page.stringRes)
                                         )
                                     },
-                                    label = { Text(stringResource(id = page.stringRes)) },
                                     selected = activePageIndex == pageIndex,
                                     onClick = {
                                         activePageIndex = pageIndex
                                     },
                                     colors = NavigationBarItemDefaults.colors(
                                         selectedIconColor = MaterialTheme.colorScheme.onSurface,
-                                        selectedTextColor = MaterialTheme.colorScheme.onSurface,
                                         unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                         indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
                                     ),
                                 )
