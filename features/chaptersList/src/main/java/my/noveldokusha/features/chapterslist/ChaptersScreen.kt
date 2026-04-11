@@ -5,9 +5,13 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +20,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -42,8 +47,10 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -64,9 +71,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.Snackbar
 import androidx.compose.ui.unit.dp
 import my.nanihadesuka.compose.InternalLazyColumnScrollbar
 import my.noveldoksuha.coreui.theme.colorApp
@@ -308,26 +312,52 @@ internal fun ChaptersScreen(
             }
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = onResumeReading,
-                icon = {
-                    Icon(
-                        Icons.Filled.PlayArrow,
-                        contentDescription = stringResource(id = R.string.open_last_read_chapter)
-                    )
-                },
-                text = {
-                    Text(
-                        text = stringResource(id = R.string.read),
-                        style = MaterialTheme.typography.labelLarge.copy(
-                            fontWeight = FontWeight.Medium
+            val isExpanded by lazyListState.isAtTop(threshold = 100.dp)
+            
+            AnimatedVisibility(
+                visible = true,
+                enter = scaleIn() + fadeIn(),
+                exit = scaleOut() + fadeOut(),
+            ) {
+                Surface(
+                    onClick = onResumeReading,
+                    shape = RoundedCornerShape(32.dp),
+                    shadowElevation = 6.dp,
+                    tonalElevation = 4.dp,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.animateContentSize()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(
+                            horizontal = if (isExpanded) 20.dp else 16.dp,
+                            vertical = 12.dp
+                        ),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            Icons.Filled.PlayArrow,
+                            contentDescription = stringResource(id = R.string.open_last_read_chapter),
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
-                    )
-                },
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                expanded = lazyListState.isAtTop(threshold = 100.dp).value
-            )
+                        AnimatedVisibility(
+                            visible = isExpanded,
+                            enter = expandHorizontally() + fadeIn(),
+                            exit = shrinkHorizontally() + fadeOut(),
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.read),
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    fontWeight = FontWeight.SemiBold
+                                ),
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
+                    }
+                }
+            }
         }
     )
 
@@ -348,7 +378,7 @@ internal fun ChaptersScreen(
                     if (progress.isDownloading) {
                         IconButton(onClick = onCancelDownloads) {
                             Icon(
-                                Icons.Filled.Close,
+                                Icons.Outlined.Close,
                                 contentDescription = stringResource(id = android.R.string.cancel),
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
@@ -356,7 +386,7 @@ internal fun ChaptersScreen(
                     } else if (progress.isComplete) {
                         IconButton(onClick = onClearDownloadProgress) {
                             Icon(
-                                Icons.Filled.Close,
+                                Icons.Outlined.Close,
                                 contentDescription = stringResource(id = android.R.string.ok),
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
