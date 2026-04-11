@@ -119,7 +119,7 @@ internal fun ChaptersScreen(
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = Color.Transparent,
         topBar = {
             Surface(color = Color.Transparent) {
                 TopAppBar(
